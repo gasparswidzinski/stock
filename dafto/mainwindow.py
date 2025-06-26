@@ -40,6 +40,15 @@ class MainWindow(QMainWindow):
         btn_buscar = QAction("Buscar", self)
         btn_buscar.triggered.connect(self._on_buscar_global)
         toolbar.addAction(btn_buscar)
+    
+    def keyPressEvent(self, event):
+        if event.key() == Qt.Key_Insert:
+            self._on_agregar_componente()
+        else:
+            super().keyPressEvent(event)    
+
+    
+
 
     @Slot()
     def _on_agregar_componente(self):
@@ -208,3 +217,5 @@ class MainWindow(QMainWindow):
         state = settings.value("windowState")
         if state:
             self.restoreState(state)
+
+
