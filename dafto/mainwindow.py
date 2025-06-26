@@ -28,10 +28,6 @@ class MainWindow(QMainWindow):
         act_salir.triggered.connect(self.close)
         menu_archivo.addAction(act_salir)
 
-        menu_ver = menubar.addMenu("Ver")
-        act_ver_etiquetas = QAction("Administrar etiquetas", self)
-        act_ver_etiquetas.triggered.connect(self._on_administrar_etiquetas)
-        menu_ver.addAction(act_ver_etiquetas)
 
         toolbar = self.addToolBar("Principal")
         self.edit_buscar = QLineEdit()
@@ -43,6 +39,20 @@ class MainWindow(QMainWindow):
         toolbar.addAction(btn_buscar)
         shortcut_buscar = QShortcut(QKeySequence("Ctrl+F"), self)
         shortcut_buscar.activated.connect(self._mostrar_dialogo_busqueda)
+        
+        menu_ver = menubar.addMenu("Ver")
+       
+        act_ver_etiquetas = QAction("Administrar etiquetas", self)
+        act_ver_etiquetas.triggered.connect(self._on_administrar_etiquetas)
+        menu_ver.addAction(act_ver_etiquetas)
+       
+        act_tema_oscuro = QAction("Activar tema oscuro", self)
+        act_tema_oscuro.triggered.connect(self.aplicar_tema_oscuro)
+        menu_ver.addAction(act_tema_oscuro)
+        
+        act_tema_claro = QAction("Volver al tema claro", self)
+        act_tema_claro.triggered.connect(self.aplicar_tema_claro)
+        menu_ver.addAction(act_tema_claro)
     
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Insert:
@@ -244,5 +254,30 @@ class MainWindow(QMainWindow):
         state = settings.value("windowState")
         if state:
             self.restoreState(state)
-
+    
+    def aplicar_tema_oscuro(self):
+        self.setStyleSheet("""
+            QMainWindow {
+                background-color: #121212;
+                color: #e0e0e0;
+            }
+            QMenuBar, QMenu, QToolBar, QDialog, QLabel, QLineEdit, QTextEdit,
+            QSpinBox, QListWidget, QPushButton, QTableWidget, QDockWidget {
+                background-color: #1e1e1e;
+                color: #e0e0e0;
+                border: none;
+            }
+            QLineEdit, QTextEdit, QSpinBox {
+                border: 1px solid #333;
+            }
+            QPushButton {
+                background-color: #2c2c2c;
+                border: 1px solid #444;
+            }
+            QPushButton:hover {
+                background-color: #3a3a3a;
+            }
+        """)
+    def aplicar_tema_claro(self):
+        self.setStyleSheet("")
 
