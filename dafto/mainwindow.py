@@ -17,6 +17,7 @@ class MainWindow(QMainWindow):
         self.docks = {}
         self._build_actions()
         self._restore_ui_state()
+        self._abrir_etiquetas_existentes()
 
     def _build_actions(self):
         menubar = self.menuBar()
@@ -280,4 +281,14 @@ class MainWindow(QMainWindow):
         """)
     def aplicar_tema_claro(self):
         self.setStyleSheet("")
+    
+    def _abrir_etiquetas_existentes(self):
+        etiquetas = self.db.obtener_todas_etiquetas()
+        for tag in etiquetas:
+            componentes = self.db.obtener_componentes_por_etiqueta(tag)
+            if componentes:
+                if tag not in self.docks:
+                    dock = TagDockWidget(tag, self.db, parent=self)
+                    self.addDockWidget(Qt.RightDockWidgetArea, dock)
+                    self.docks[tag] = dock
 
