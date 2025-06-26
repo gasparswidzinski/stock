@@ -257,28 +257,56 @@ class MainWindow(QMainWindow):
             self.restoreState(state)
     
     def aplicar_tema_oscuro(self):
-        self.setStyleSheet("""
-            QMainWindow {
-                background-color: #121212;
-                color: #e0e0e0;
-            }
-            QMenuBar, QMenu, QToolBar, QDialog, QLabel, QLineEdit, QTextEdit,
-            QSpinBox, QListWidget, QPushButton, QTableWidget, QDockWidget {
-                background-color: #1e1e1e;
-                color: #e0e0e0;
-                border: none;
-            }
-            QLineEdit, QTextEdit, QSpinBox {
-                border: 1px solid #333;
-            }
-            QPushButton {
-                background-color: #2c2c2c;
-                border: 1px solid #444;
-            }
-            QPushButton:hover {
-                background-color: #3a3a3a;
-            }
-        """)
+       self.setStyleSheet("""
+        * {
+            font-family: 'Segoe UI', sans-serif;
+            font-size: 10.5pt;
+        }
+        QMainWindow {
+            background-color: #202124;
+            color: #e8eaed;
+        }
+        QMenuBar, QMenu {
+            background-color: #303134;
+            color: #e8eaed;
+        }
+        QMenu::item:selected {
+            background-color: #3c4043;
+        }
+        QToolBar {
+            background-color: #2a2a2d;
+        }
+        QDialog, QDockWidget, QWidget {
+            background-color: #202124;
+            color: #e8eaed;
+        }
+        QLabel, QListWidget, QLineEdit, QTextEdit, QSpinBox, QTableWidget, QPushButton {
+            background-color: #292a2d;
+            color: #e8eaed;
+            border: 1px solid #3c4043;
+            padding: 2px;
+        }
+        QLineEdit:focus, QTextEdit:focus, QSpinBox:focus {
+            border: 1px solid #8ab4f8;
+        }
+        QPushButton {
+            background-color: #3c4043;
+            border-radius: 4px;
+        }
+        QPushButton:hover {
+            background-color: #5f6368;
+        }
+        QHeaderView::section {
+            background-color: #3c4043;
+            color: #e8eaed;
+            padding: 4px;
+        }
+        QTableWidget {
+            gridline-color: #444;
+            selection-background-color: #5f6368;
+            selection-color: white;
+        }
+    """)
     def aplicar_tema_claro(self):
         self.setStyleSheet("")
     
