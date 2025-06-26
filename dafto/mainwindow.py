@@ -1,8 +1,9 @@
 from PySide6.QtWidgets import (
     QMainWindow, QLineEdit, QDialog, QVBoxLayout, QTableWidget,
-    QTableWidgetItem, QPushButton, QHBoxLayout, QListWidget, QMessageBox, QInputDialog
+    QTableWidgetItem, QPushButton, QHBoxLayout, QListWidget, QMessageBox, QInputDialog,QLabel, QDialogButtonBox
 )
 from PySide6.QtGui import QAction
+from PySide6.QtGui import QKeySequence, QShortcut
 from PySide6.QtCore import Qt, QSettings, Slot
 from db import DBManager
 from dialogs import ItemDialog
@@ -40,15 +41,36 @@ class MainWindow(QMainWindow):
         btn_buscar = QAction("Buscar", self)
         btn_buscar.triggered.connect(self._on_buscar_global)
         toolbar.addAction(btn_buscar)
+        shortcut_buscar = QShortcut(QKeySequence("Ctrl+F"), self)
+        shortcut_buscar.activated.connect(self._mostrar_dialogo_busqueda)
     
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Insert:
             self._on_agregar_componente()
         else:
-            super().keyPressEvent(event)    
+            super().keyPressEvent(event)   
 
     
+    def _mostrar_dialogo_busqueda(self):
+        dlg = QDialog(self)
+        dlg.setWindowTitle("Buscar componente")
+        layout = QVBoxLayout(dlg)
 
+        label = QLabel("Ingrese el texto a buscar:")
+        layout.addWidget(label)
+
+        input_buscar = QLineEdit()
+        layout.addWidget(input_buscar)
+
+        botones = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        layout.addWidget(botones)
+
+        botones.accepted.connect(dlg.accept)
+        botones.rejected.connect(dlg.reject)
+
+        if dlg.exec():
+            texto = input_buscar.text().strip()
+            self._on_buscar_global(texto)
 
     @Slot()
     def _on_agregar_componente(self):
@@ -86,10 +108,15 @@ class MainWindow(QMainWindow):
                 dock.actualizar_lista()
 
     @Slot()
-    def _on_buscar_global(self):
-        texto = self.edit_buscar.text().strip().lower()
+    @Slot(str)
+    def _on_buscar_global(self, texto=None):
+        if texto is None:
+            texto = self.edit_buscar.text().strip().lower()
+        else:
+            texto = texto.lower()
         if not texto:
             return
+
         pattern = f"%{texto}%"
         c = self.db.conn.cursor()
         c.execute('''
@@ -97,11 +124,11 @@ class MainWindow(QMainWindow):
         LEFT JOIN componentes_etiquetas ce ON c.id=ce.componente_id
         LEFT JOIN etiquetas e ON ce.etiqueta_id=e.id
         WHERE LOWER(c.nombre) LIKE ?
-           OR LOWER(c.valor) LIKE ?
-           OR LOWER(c.descripcion) LIKE ?
-           OR LOWER(c.ubicacion) LIKE ?
-           OR LOWER(c.proveedor) LIKE ?
-           OR LOWER(e.nombre) LIKE ?
+        OR LOWER(c.valor) LIKE ?
+        OR LOWER(c.descripcion) LIKE ?
+        OR LOWER(c.ubicacion) LIKE ?
+        OR LOWER(c.proveedor) LIKE ?
+        OR LOWER(e.nombre) LIKE ?
         ORDER BY c.nombre COLLATE NOCASE;
         ''', (pattern,) * 6)
         resultados = [dict(r) for r in c.fetchall()]
