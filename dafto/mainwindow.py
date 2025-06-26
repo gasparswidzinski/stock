@@ -1,7 +1,8 @@
 from PySide6.QtWidgets import (
-    QMainWindow, QAction, QLineEdit, QDialog, QVBoxLayout, QTableWidget,
+    QMainWindow, QLineEdit, QDialog, QVBoxLayout, QTableWidget,
     QTableWidgetItem, QPushButton, QHBoxLayout, QListWidget, QMessageBox, QInputDialog
 )
+from PySide6.QtGui import QAction
 from PySide6.QtCore import Qt, QSettings, Slot
 from db import DBManager
 from dialogs import ItemDialog
