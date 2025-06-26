@@ -4,6 +4,8 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtCore import Slot
 from dialogs import ItemDialog
+from PySide6.QtGui import QColor
+from PySide6.QtCore import Qt
 
 class TagDockWidget(QDockWidget):
     def __init__(self, etiqueta, db, parent=None):
@@ -53,9 +55,16 @@ class TagDockWidget(QDockWidget):
             self.table.insertRow(row)
             self.table.setItem(row, 0, QTableWidgetItem(str(row_data["id"])))
             self.table.setItem(row, 1, QTableWidgetItem(row_data["nombre"]))
-            self.table.setItem(row, 2, QTableWidgetItem(str(row_data["cantidad"])))
+            cantidad = row_data["cantidad"]
+            stock_min = row_data.get("stock_minimo", 0) or 0
+            item_cant = QTableWidgetItem(str(cantidad))
+            if cantidad < stock_min:
+                item_cant.setBackground(Qt.red)
+                item_cant.setForeground(Qt.white)
+            self.table.setItem(row, 2, item_cant)
             self.table.setItem(row, 3, QTableWidgetItem(row_data.get("ubicacion", "") or ""))
         self.table.resizeColumnsToContents()
+        
 
     @Slot()
     def actualizar_lista(self):
