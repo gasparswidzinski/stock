@@ -417,7 +417,11 @@ class MainWindow(QMainWindow):
             QMessageBox.information(self, "Inventario vacío", "No hay componentes cargados.")
             return
 
-        from PySide6.QtWidgets import QDialog, QVBoxLayout, QTableWidget, QTableWidgetItem, QPushButton, QHBoxLayout
+        from PySide6.QtWidgets import (
+            QDialog, QVBoxLayout, QTableWidget, QTableWidgetItem,
+            QPushButton, QHBoxLayout, QMessageBox
+        )
+        from dialogs import ItemDialog
 
         dlg = QDialog(self)
         dlg.setWindowTitle("Inventario completo")
@@ -429,28 +433,68 @@ class MainWindow(QMainWindow):
             "ID", "Nombre", "Cantidad", "Stock mínimo", "Ubicación", "Proveedor"
         ])
         tabla.setEditTriggers(QTableWidget.NoEditTriggers)
+        tabla.setSelectionBehavior(QTableWidget.SelectRows)
+        tabla.setSelectionMode(QTableWidget.SingleSelection)
 
-        for r in resultados:
-            row = tabla.rowCount()
-            tabla.insertRow(row)
-            tabla.setItem(row, 0, QTableWidgetItem(str(r["id"])))
-            tabla.setItem(row, 1, QTableWidgetItem(r["nombre"]))
-            tabla.setItem(row, 2, QTableWidgetItem(str(r["cantidad"])))
-            tabla.setItem(row, 3, QTableWidgetItem(str(r["stock_minimo"]) if r["stock_minimo"] is not None else "-"))
-            tabla.setItem(row, 4, QTableWidgetItem(r["ubicacion"] or ""))
-            tabla.setItem(row, 5, QTableWidgetItem(r["proveedor"] or ""))
+        def cargar_datos():
+            tabla.setRowCount(0)
+            c = self.db.conn.cursor()
+            c.execute("""
+                SELECT id, nombre, cantidad, stock_minimo, ubicacion, proveedor
+                FROM componentes
+                ORDER BY nombre COLLATE NOCASE
+            """)
+            for r in c.fetchall():
+                row = tabla.rowCount()
+                tabla.insertRow(row)
+                tabla.setItem(row, 0, QTableWidgetItem(str(r["id"])))
+                tabla.setItem(row, 1, QTableWidgetItem(r["nombre"]))
+                tabla.setItem(row, 2, QTableWidgetItem(str(r["cantidad"])))
+                tabla.setItem(row, 3, QTableWidgetItem(str(r["stock_minimo"]) if r["stock_minimo"] is not None else "-"))
+                tabla.setItem(row, 4, QTableWidgetItem(r["ubicacion"] or ""))
+                tabla.setItem(row, 5, QTableWidgetItem(r["proveedor"] or ""))
+            tabla.resizeColumnsToContents()
 
-        tabla.resizeColumnsToContents()
+        cargar_datos()
         layout.addWidget(tabla)
 
+        btn_editar = QPushButton("Editar seleccionado")
+        btn_eliminar = QPushButton("Eliminar seleccionado")
         btn_cerrar = QPushButton("Cerrar")
+
+        def editar():
+            sel = tabla.selectedItems()
+            if not sel:
+                return
+            comp_id = int(tabla.item(sel[0].row(), 0).text())
+            dlg_edit = ItemDialog(self.db, self, comp_id=comp_id)
+            dlg_edit.componente_guardado.connect(lambda _: cargar_datos())
+            dlg_edit.exec()
+
+        def eliminar():
+            sel = tabla.selectedItems()
+            if not sel:
+                return
+            comp_id = int(tabla.item(sel[0].row(), 0).text())
+            nombre = tabla.item(sel[0].row(), 1).text()
+            rta = QMessageBox.question(
+                dlg, "Confirmar eliminación",
+                f"¿Seguro que deseas eliminar '{nombre}'?"
+            )
+            if rta == QMessageBox.Yes:
+                self.db.eliminar_componente(comp_id)
+                cargar_datos()
+
+        btn_editar.clicked.connect(editar)
+        btn_eliminar.clicked.connect(eliminar)
         btn_cerrar.clicked.connect(dlg.accept)
+
         h = QHBoxLayout()
+        h.addWidget(btn_editar)
+        h.addWidget(btn_eliminar)
         h.addStretch()
         h.addWidget(btn_cerrar)
         layout.addLayout(h)
 
         dlg.resize(700, 400)
         dlg.exec()
-
-
