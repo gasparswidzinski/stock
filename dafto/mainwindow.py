@@ -61,6 +61,10 @@ class MainWindow(QMainWindow):
         act_nuevo_proyecto.triggered.connect(self._nuevo_proyecto)
         menu_ver.addAction(act_nuevo_proyecto)
         
+        shortcut_nuevo = QShortcut(QKeySequence("Ctrl+N"), self)
+        shortcut_nuevo.activated.connect(self._on_agregar_componente)
+        
+        
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Insert:
             self._on_agregar_componente()
