@@ -55,7 +55,11 @@ class MainWindow(QMainWindow):
         act_tema_claro = QAction("Volver al tema claro", self)
         act_tema_claro.triggered.connect(self.aplicar_tema_claro)
         menu_ver.addAction(act_tema_claro)
-    
+        
+        act_nuevo_proyecto = QAction("Nuevo Proyecto", self)
+        act_nuevo_proyecto.triggered.connect(self._nuevo_proyecto)
+        menu_ver.addAction(act_nuevo_proyecto)
+        
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Insert:
             self._on_agregar_componente()
@@ -321,11 +325,14 @@ class MainWindow(QMainWindow):
                     self.addDockWidget(Qt.RightDockWidgetArea, dock)
                     self.docks[tag] = dock
     
+    
     def _nuevo_proyecto(self):
         widget = ProyectoWidget(self.db, self)
         self.setCentralWidget(widget)
     
+    
     def _dialogo_nombre_proyecto(self, titulo):
         from PySide6.QtWidgets import QInputDialog
         return QInputDialog.getText(self, titulo, "Nombre del proyecto:")
+    
 

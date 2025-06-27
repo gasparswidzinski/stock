@@ -39,8 +39,22 @@ class DBManager:
             FOREIGN KEY(componente_id) REFERENCES componentes(id) ON DELETE CASCADE,
             FOREIGN KEY(etiqueta_id) REFERENCES etiquetas(id) ON DELETE CASCADE
         );
-        
-        
+        CREATE TABLE IF NOT EXISTS proyectos (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            nombre TEXT,
+            fecha TEXT,
+            tipo TEXT CHECK(tipo IN ('prototipo', 'soldado'))
+        );
+
+        CREATE TABLE IF NOT EXISTS proyectos_componentes (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                proyecto_id INTEGER,
+                componente_id INTEGER,
+                cantidad INTEGER,
+                FOREIGN KEY(proyecto_id) REFERENCES proyectos(id),
+                FOREIGN KEY(componente_id) REFERENCES componentes(id)
+            );
+            
         ''')
         self.conn.commit()
 
