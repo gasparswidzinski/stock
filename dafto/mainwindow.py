@@ -70,6 +70,9 @@ class MainWindow(QMainWindow):
         shortcut_stock = QShortcut(QKeySequence("F3"), self)
         shortcut_stock.activated.connect(self._entrada_rapida_stock)
         
+        shortcut_todo = QShortcut(QKeySequence("F4"), self)
+        shortcut_todo.activated.connect(self._mostrar_todo_stock)
+        
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Insert:
             self._on_agregar_componente()
@@ -400,4 +403,54 @@ class MainWindow(QMainWindow):
             self, "Stock actualizado",
             f"Nuevo stock de '{row['nombre']}': {row['cantidad'] + cantidad}"
         )
+    
+    def _mostrar_todo_stock(self):
+        c = self.db.conn.cursor()
+        c.execute("""
+            SELECT id, nombre, cantidad, stock_minimo, ubicacion, proveedor
+            FROM componentes
+            ORDER BY nombre COLLATE NOCASE
+        """)
+        resultados = c.fetchall()
+        if not resultados:
+            from PySide6.QtWidgets import QMessageBox
+            QMessageBox.information(self, "Inventario vacío", "No hay componentes cargados.")
+            return
+
+        from PySide6.QtWidgets import QDialog, QVBoxLayout, QTableWidget, QTableWidgetItem, QPushButton, QHBoxLayout
+
+        dlg = QDialog(self)
+        dlg.setWindowTitle("Inventario completo")
+        layout = QVBoxLayout(dlg)
+
+        tabla = QTableWidget()
+        tabla.setColumnCount(6)
+        tabla.setHorizontalHeaderLabels([
+            "ID", "Nombre", "Cantidad", "Stock mínimo", "Ubicación", "Proveedor"
+        ])
+        tabla.setEditTriggers(QTableWidget.NoEditTriggers)
+
+        for r in resultados:
+            row = tabla.rowCount()
+            tabla.insertRow(row)
+            tabla.setItem(row, 0, QTableWidgetItem(str(r["id"])))
+            tabla.setItem(row, 1, QTableWidgetItem(r["nombre"]))
+            tabla.setItem(row, 2, QTableWidgetItem(str(r["cantidad"])))
+            tabla.setItem(row, 3, QTableWidgetItem(str(r["stock_minimo"]) if r["stock_minimo"] is not None else "-"))
+            tabla.setItem(row, 4, QTableWidgetItem(r["ubicacion"] or ""))
+            tabla.setItem(row, 5, QTableWidgetItem(r["proveedor"] or ""))
+
+        tabla.resizeColumnsToContents()
+        layout.addWidget(tabla)
+
+        btn_cerrar = QPushButton("Cerrar")
+        btn_cerrar.clicked.connect(dlg.accept)
+        h = QHBoxLayout()
+        h.addStretch()
+        h.addWidget(btn_cerrar)
+        layout.addLayout(h)
+
+        dlg.resize(700, 400)
+        dlg.exec()
+
 
