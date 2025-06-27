@@ -19,6 +19,7 @@ class MainWindow(QMainWindow):
         self._build_actions()
         self._restore_ui_state()
         self._abrir_etiquetas_existentes()
+        self._alertar_stock_bajo()
 
     def _build_actions(self):
         menubar = self.menuBar()
@@ -334,5 +335,26 @@ class MainWindow(QMainWindow):
     def _dialogo_nombre_proyecto(self, titulo):
         from PySide6.QtWidgets import QInputDialog
         return QInputDialog.getText(self, titulo, "Nombre del proyecto:")
+    
+    def _alertar_stock_bajo(self):
+        c = self.db.conn.cursor()
+        c.execute("""
+            SELECT nombre, cantidad, stock_minimo
+            FROM componentes
+            WHERE stock_minimo IS NOT NULL AND cantidad < stock_minimo
+            ORDER BY nombre COLLATE NOCASE
+        """)
+        resultados = c.fetchall()
+        if resultados:
+            lista = "\n".join(
+                f"{r['nombre']} (Stock: {r['cantidad']}, Mínimo: {r['stock_minimo']})"
+                for r in resultados
+            )
+            from PySide6.QtWidgets import QMessageBox
+            QMessageBox.warning(
+                self,
+                "Stock bajo",
+                f"Los siguientes componentes tienen stock por debajo del mínimo:\n\n{lista}"
+            )
     
 
