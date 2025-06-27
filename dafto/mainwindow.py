@@ -409,7 +409,6 @@ class MainWindow(QMainWindow):
         c.execute("""
             SELECT id, nombre, cantidad, stock_minimo, ubicacion, proveedor
             FROM componentes
-            ORDER BY nombre COLLATE NOCASE
         """)
         resultados = c.fetchall()
         if not resultados:
@@ -424,13 +423,13 @@ class MainWindow(QMainWindow):
         from dialogs import ItemDialog
 
         dlg = QDialog(self)
-        dlg.setWindowTitle("Inventario completo")
+        dlg.setWindowTitle("Inventario completo por etiqueta")
         layout = QVBoxLayout(dlg)
 
         tabla = QTableWidget()
-        tabla.setColumnCount(6)
+        tabla.setColumnCount(7)
         tabla.setHorizontalHeaderLabels([
-            "ID", "Nombre", "Cantidad", "Stock mínimo", "Ubicación", "Proveedor"
+            "ID", "Etiqueta", "Nombre", "Cantidad", "Stock mínimo", "Ubicación", "Proveedor"
         ])
         tabla.setEditTriggers(QTableWidget.NoEditTriggers)
         tabla.setSelectionBehavior(QTableWidget.SelectRows)
@@ -442,17 +441,33 @@ class MainWindow(QMainWindow):
             c.execute("""
                 SELECT id, nombre, cantidad, stock_minimo, ubicacion, proveedor
                 FROM componentes
-                ORDER BY nombre COLLATE NOCASE
             """)
+            componentes = []
             for r in c.fetchall():
+                etiquetas = self.db.obtener_etiquetas_por_componente(r["id"])
+                etiqueta = etiquetas[0] if etiquetas else "(Sin etiqueta)"
+                componentes.append({
+                    "id": r["id"],
+                    "etiqueta": etiqueta,
+                    "nombre": r["nombre"],
+                    "cantidad": r["cantidad"],
+                    "stock_minimo": r["stock_minimo"],
+                    "ubicacion": r["ubicacion"],
+                    "proveedor": r["proveedor"],
+                })
+            # Ordenar por etiqueta + nombre
+            componentes.sort(key=lambda x: (x["etiqueta"].lower(), x["nombre"].lower()))
+
+            for r in componentes:
                 row = tabla.rowCount()
                 tabla.insertRow(row)
                 tabla.setItem(row, 0, QTableWidgetItem(str(r["id"])))
-                tabla.setItem(row, 1, QTableWidgetItem(r["nombre"]))
-                tabla.setItem(row, 2, QTableWidgetItem(str(r["cantidad"])))
-                tabla.setItem(row, 3, QTableWidgetItem(str(r["stock_minimo"]) if r["stock_minimo"] is not None else "-"))
-                tabla.setItem(row, 4, QTableWidgetItem(r["ubicacion"] or ""))
-                tabla.setItem(row, 5, QTableWidgetItem(r["proveedor"] or ""))
+                tabla.setItem(row, 1, QTableWidgetItem(r["etiqueta"]))
+                tabla.setItem(row, 2, QTableWidgetItem(r["nombre"]))
+                tabla.setItem(row, 3, QTableWidgetItem(str(r["cantidad"])))
+                tabla.setItem(row, 4, QTableWidgetItem(str(r["stock_minimo"]) if r["stock_minimo"] is not None else "-"))
+                tabla.setItem(row, 5, QTableWidgetItem(r["ubicacion"] or ""))
+                tabla.setItem(row, 6, QTableWidgetItem(r["proveedor"] or ""))
             tabla.resizeColumnsToContents()
 
         cargar_datos()
@@ -476,7 +491,7 @@ class MainWindow(QMainWindow):
             if not sel:
                 return
             comp_id = int(tabla.item(sel[0].row(), 0).text())
-            nombre = tabla.item(sel[0].row(), 1).text()
+            nombre = tabla.item(sel[0].row(), 2).text()
             rta = QMessageBox.question(
                 dlg, "Confirmar eliminación",
                 f"¿Seguro que deseas eliminar '{nombre}'?"
@@ -496,5 +511,7 @@ class MainWindow(QMainWindow):
         h.addWidget(btn_cerrar)
         layout.addLayout(h)
 
-        dlg.resize(700, 400)
+        dlg.resize(800, 500)
         dlg.exec()
+
+
