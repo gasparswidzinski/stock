@@ -67,6 +67,9 @@ class MainWindow(QMainWindow):
         shortcut_proyecto = QShortcut(QKeySequence("Ctrl+P"), self)
         shortcut_proyecto.activated.connect(self._nuevo_proyecto)
         
+        shortcut_stock = QShortcut(QKeySequence("F3"), self)
+        shortcut_stock.activated.connect(self._entrada_rapida_stock)
+        
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Insert:
             self._on_agregar_componente()
@@ -362,5 +365,39 @@ class MainWindow(QMainWindow):
                 "Stock bajo",
                 f"Los siguientes componentes tienen stock por debajo del mínimo:\n\n{lista}"
             )
-    
+    def _entrada_rapida_stock(self):
+        from PySide6.QtWidgets import QInputDialog, QMessageBox
+        comp_id_str, ok = QInputDialog.getText(self, "Entrada rápida de stock", "ID del componente:")
+        if not ok or not comp_id_str.strip():
+            return
+        try:
+            comp_id = int(comp_id_str.strip())
+        except ValueError:
+            QMessageBox.warning(self, "Error", "ID inválido.")
+            return
+        c = self.db.conn.cursor()
+        c.execute("SELECT nombre, cantidad FROM componentes WHERE id=?", (comp_id,))
+        row = c.fetchone()
+        if not row:
+            QMessageBox.warning(self, "Error", "No se encontró el componente.")
+            return
+        cantidad_str, ok = QInputDialog.getText(
+            self, "Cantidad a sumar",
+            f"Componente: {row['nombre']} (Stock actual: {row['cantidad']})\nCantidad a sumar:"
+        )
+        if not ok or not cantidad_str.strip():
+            return
+        try:
+            cantidad = int(cantidad_str.strip())
+            if cantidad <= 0:
+                raise ValueError()
+        except ValueError:
+            QMessageBox.warning(self, "Error", "Cantidad inválida.")
+            return
+        c.execute("UPDATE componentes SET cantidad = cantidad + ? WHERE id=?", (cantidad, comp_id))
+        self.db.conn.commit()
+        QMessageBox.information(
+            self, "Stock actualizado",
+            f"Nuevo stock de '{row['nombre']}': {row['cantidad'] + cantidad}"
+        )
 
