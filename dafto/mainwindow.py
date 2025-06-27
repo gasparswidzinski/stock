@@ -433,7 +433,8 @@ class MainWindow(QMainWindow):
         ])
         tabla.setEditTriggers(QTableWidget.NoEditTriggers)
         tabla.setSelectionBehavior(QTableWidget.SelectRows)
-        tabla.setSelectionMode(QTableWidget.SingleSelection)
+        tabla.setSelectionMode(QTableWidget.ExtendedSelection)  
+
 
         def cargar_datos():
             tabla.setRowCount(0)
@@ -474,7 +475,8 @@ class MainWindow(QMainWindow):
         layout.addWidget(tabla)
 
         btn_editar = QPushButton("Editar seleccionado")
-        btn_eliminar = QPushButton("Eliminar seleccionado")
+        btn_eliminar = QPushButton("Eliminar seleccionados")
+
         btn_cerrar = QPushButton("Cerrar")
 
         def editar():
@@ -487,18 +489,20 @@ class MainWindow(QMainWindow):
             dlg_edit.exec()
 
         def eliminar():
-            sel = tabla.selectedItems()
-            if not sel:
+            selected = tabla.selectionModel().selectedRows()
+            if not selected:
                 return
-            comp_id = int(tabla.item(sel[0].row(), 0).text())
-            nombre = tabla.item(sel[0].row(), 2).text()
-            rta = QMessageBox.question(
+            resp = QMessageBox.question(
                 dlg, "Confirmar eliminación",
-                f"¿Seguro que deseas eliminar '{nombre}'?"
+                f"¿Seguro que deseas eliminar {len(selected)} componente(s)?"
             )
-            if rta == QMessageBox.Yes:
+            if resp != QMessageBox.Yes:
+                return
+            for idx in sorted(selected, key=lambda x: x.row(), reverse=True):
+                comp_id = int(tabla.item(idx.row(), 0).text())
                 self.db.eliminar_componente(comp_id)
-                cargar_datos()
+            cargar_datos()
+
 
         btn_editar.clicked.connect(editar)
         btn_eliminar.clicked.connect(eliminar)
