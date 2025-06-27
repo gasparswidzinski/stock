@@ -39,6 +39,8 @@ class DBManager:
             FOREIGN KEY(componente_id) REFERENCES componentes(id) ON DELETE CASCADE,
             FOREIGN KEY(etiqueta_id) REFERENCES etiquetas(id) ON DELETE CASCADE
         );
+        
+        
         ''')
         self.conn.commit()
 
@@ -119,3 +121,39 @@ class DBManager:
         WHERE ce.componente_id=?
         ''', (comp_id,))
         return [row["nombre"] for row in c.fetchall()]
+    
+    def obtener_componente_por_id(self, comp_id):
+        c = self.conn.cursor()
+        c.execute("SELECT * FROM componentes WHERE id=?", (comp_id,))
+        return dict(c.fetchone())
+    
+    def guardar_proyecto(self, nombre, tipo, lista_componentes):
+        c = self.conn.cursor()
+        c.execute("INSERT INTO proyectos(nombre, fecha, tipo) VALUES (?, date('now'), ?)", (nombre, tipo))
+        proyecto_id = c.lastrowid
+        for comp in lista_componentes:
+            c.execute("INSERT INTO proyectos_componentes(proyecto_id, componente_id, cantidad) VALUES (?, ?, ?)",
+                    (proyecto_id, comp["id"], comp["cantidad"]))
+        self.conn.commit()
+    
+    def soldar_proyecto(self, nombre, lista_componentes):
+        c = self.conn.cursor()
+        faltantes = []
+        for comp in lista_componentes:
+            c.execute("SELECT cantidad, nombre FROM componentes WHERE id=?", (comp["id"],))
+            row = c.fetchone()
+            if not row or row["cantidad"] < comp["cantidad"]:
+                faltantes.append(row["nombre"] if row else f"ID {comp['id']}")
+        if faltantes:
+            return False, faltantes
+
+        for comp in lista_componentes:
+            c.execute("UPDATE componentes SET cantidad = cantidad - ? WHERE id=?", (comp["cantidad"], comp["id"]))
+    
+        c.execute("INSERT INTO proyectos(nombre, fecha, tipo) VALUES (?, date('now'), ?)", (nombre, "soldado"))
+        proyecto_id = c.lastrowid
+        for comp in lista_componentes:
+            c.execute("INSERT INTO proyectos_componentes(proyecto_id, componente_id, cantidad) VALUES (?, ?, ?)",
+                    (proyecto_id, comp["id"], comp["cantidad"]))
+        self.conn.commit()
+        return True, []

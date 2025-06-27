@@ -8,6 +8,7 @@ from PySide6.QtCore import Qt, QSettings, Slot
 from db import DBManager
 from dialogs import ItemDialog
 from docks import TagDockWidget
+from proyectos import ProyectoWidget
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -41,7 +42,7 @@ class MainWindow(QMainWindow):
         shortcut_buscar = QShortcut(QKeySequence("Ctrl+F"), self)
         shortcut_buscar.activated.connect(self._mostrar_dialogo_busqueda)
         
-        menu_ver = menubar.addMenu("Ver")
+        menu_ver = menubar.addMenu("Menu")
        
         act_ver_etiquetas = QAction("Administrar etiquetas", self)
         act_ver_etiquetas.triggered.connect(self._on_administrar_etiquetas)
@@ -319,4 +320,12 @@ class MainWindow(QMainWindow):
                     dock = TagDockWidget(tag, self.db, parent=self)
                     self.addDockWidget(Qt.RightDockWidgetArea, dock)
                     self.docks[tag] = dock
+    
+    def _nuevo_proyecto(self):
+        widget = ProyectoWidget(self.db, self)
+        self.setCentralWidget(widget)
+    
+    def _dialogo_nombre_proyecto(self, titulo):
+        from PySide6.QtWidgets import QInputDialog
+        return QInputDialog.getText(self, titulo, "Nombre del proyecto:")
 
