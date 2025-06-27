@@ -64,6 +64,8 @@ class MainWindow(QMainWindow):
         shortcut_nuevo = QShortcut(QKeySequence("Ctrl+N"), self)
         shortcut_nuevo.activated.connect(self._on_agregar_componente)
         
+        shortcut_proyecto = QShortcut(QKeySequence("Ctrl+P"), self)
+        shortcut_proyecto.activated.connect(self._nuevo_proyecto)
         
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Insert:
