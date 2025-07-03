@@ -446,7 +446,6 @@ class MainWindow(QMainWindow):
         ])
         tabla.setSelectionBehavior(QTableWidget.SelectRows)
         tabla.setSelectionMode(QTableWidget.MultiSelection)
-        print("Modo de selección:", tabla.selectionMode())
 
         tabla.setEditTriggers(QTableWidget.NoEditTriggers)
         tabla.setSelectionBehavior(QTableWidget.SelectRows)

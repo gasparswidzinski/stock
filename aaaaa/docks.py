@@ -29,6 +29,7 @@ class TagDockWidget(QDockWidget):
         self.table.setHorizontalHeaderLabels(["ID", "Nombre", "Cantidad", "Ubicación"])
         self.table.setEditTriggers(QTableWidget.NoEditTriggers)
         self.table.setSelectionBehavior(QTableWidget.SelectRows)
+        self.table.setSelectionMode(QTableWidget.MultiSelection)
         self.table.setSortingEnabled(True)
         v.addWidget(self.table)
 
