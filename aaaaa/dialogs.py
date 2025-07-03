@@ -78,7 +78,7 @@ class ItemDialog(QDialog):
         r = c.fetchone()
         if not r:
             QMessageBox.warning(self, "Error", "No se encontró el componente.")
-            self.reject()
+            self.done(QDialog.Rejected)
             return
         row = dict(r)
         self.edit_nombre.setText(row.get("nombre", ""))
@@ -95,6 +95,7 @@ class ItemDialog(QDialog):
         etiquetas = self.db.obtener_etiquetas_por_componente(self.comp_id)
         for tag in etiquetas:
             self.list_etiquetas.addItem(tag)
+
 
     @Slot()
     def _on_agregar_etiqueta(self):

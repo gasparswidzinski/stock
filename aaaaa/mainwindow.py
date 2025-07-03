@@ -607,3 +607,4 @@ class MainWindow(QMainWindow):
         ruta = os.path.join(os.path.dirname(__file__), nombre_archivo)
         with open(ruta, "r", encoding="utf-8") as f:
             self.setStyleSheet(f.read())
+    
