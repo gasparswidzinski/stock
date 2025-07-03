@@ -10,6 +10,7 @@ from dialogs import ItemDialog
 from docks import TagDockWidget
 from proyectos import ProyectoWidget
 from proyectos_dialog import ProyectosDialog
+from dashboard import DashboardWidget
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -21,6 +22,7 @@ class MainWindow(QMainWindow):
         self._restore_ui_state()
         self._abrir_etiquetas_existentes()
         self._alertar_stock_bajo()
+        self._mostrar_dashboard()
 
     def _build_actions(self):
         menubar = self.menuBar()
@@ -567,9 +569,13 @@ class MainWindow(QMainWindow):
             QMessageBox.warning(self, "Error", "El archivo no contiene datos válidos.")
             return
 
-        # Crear el ProyectoWidget con estos componentes
+        
         from proyectos import ProyectoWidget
         widget = ProyectoWidget(self.db, self)
         widget.componentes = componentes
         widget._actualizar_tabla()
+        self.setCentralWidget(widget)
+    
+    def _mostrar_dashboard(self):
+        widget = DashboardWidget(self.db, self)
         self.setCentralWidget(widget)
