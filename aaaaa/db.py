@@ -54,6 +54,16 @@ class DBManager:
                 FOREIGN KEY(proyecto_id) REFERENCES proyectos(id),
                 FOREIGN KEY(componente_id) REFERENCES componentes(id)
             );
+        
+        CREATE TABLE IF NOT EXISTS historial (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                componente_id INTEGER,
+                accion TEXT,
+                cantidad INTEGER,
+                fecha_hora TEXT,
+                descripcion TEXT,
+                FOREIGN KEY(componente_id) REFERENCES componentes(id)
+             );
             
         ''')
         self.conn.commit()
@@ -108,8 +118,13 @@ class DBManager:
 
     def eliminar_componente(self, comp_id):
         c = self.conn.cursor()
+        c.execute("""
+            INSERT INTO historial (componente_id, accion, cantidad, fecha_hora, descripcion)
+            VALUES (?, 'Baja', NULL, datetime('now'), 'Componente eliminado.')
+        """, (comp_id,))
         c.execute("DELETE FROM componentes WHERE id=?", (comp_id,))
         self.conn.commit()
+
 
     def obtener_componentes_por_etiqueta(self, etiqueta):
         c = self.conn.cursor()

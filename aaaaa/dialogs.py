@@ -6,6 +6,7 @@ from PySide6.QtCore import Qt, Signal, Slot
 from PySide6.QtGui import QIcon
 from PySide6 import QtCore
 from fancy_dialog import FancyDialog
+from datetime import datetime
 
 
 class ItemDialog(FancyDialog):
@@ -141,5 +142,19 @@ class ItemDialog(FancyDialog):
             comp_id = self.comp_id
         else:
             comp_id = self.db.agregar_componente(datos, etiqueta_list)
+        c = self.db.conn.cursor()
+        accion = "Edición" if self.comp_id else "Alta"
+        descripcion = "Edición de componente" if self.comp_id else "Nuevo componente agregado"
+        c.execute("""
+            INSERT INTO historial (componente_id, accion, cantidad, fecha_hora, descripcion)
+            VALUES (?, ?, ?, ?, ?)
+        """, (
+            comp_id,
+            accion,
+            datos["cantidad"],
+            datetime.now().isoformat(sep=" ", timespec="seconds"),
+            descripcion
+        ))
+        self.db.conn.commit()
         self.componente_guardado.emit(comp_id)
         self.accept()

@@ -13,6 +13,7 @@ from proyectos_dialog import ProyectosDialog
 from dashboard import DashboardWidget
 from PySide6.QtGui import QIcon
 from PySide6 import QtGui
+from historial_dialog import HistorialDialog
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -105,6 +106,12 @@ class MainWindow(QMainWindow):
 
         shortcut_historial = QShortcut(QKeySequence("Ctrl+H"), self)
         shortcut_historial.activated.connect(self._abrir_dialogo_proyectos)
+        
+        act_ver_historial = QAction("Ver historial de movimientos", self)
+        act_ver_historial.triggered.connect(self._abrir_historial)
+        menu_ver.addAction(act_ver_historial)
+        shortcut_historial = QShortcut(QKeySequence("Ctrl+M"), self)
+        shortcut_historial.activated.connect(self._abrir_historial)
 
         
     def keyPressEvent(self, event):
@@ -433,6 +440,11 @@ class MainWindow(QMainWindow):
             return
         c.execute("UPDATE componentes SET cantidad = cantidad + ? WHERE id=?", (cantidad, comp_id))
         self.db.conn.commit()
+        c.execute("""
+            INSERT INTO historial (componente_id, accion, cantidad, fecha_hora, descripcion)
+            VALUES (?, 'Entrada Stock', ?, datetime('now'), 'Entrada rápida desde F3')
+        """, (comp_id, cantidad))
+        self.db.conn.commit()
         QMessageBox.information(
             self, "Stock actualizado",
             f"Nuevo stock de '{row['nombre']}': {row['cantidad'] + cantidad}"
@@ -637,5 +649,9 @@ class MainWindow(QMainWindow):
             self.tema_actual = "oscuro"
         else:
             self.tema_actual = "claro"
+            
+    def _abrir_historial(self):
+        dlg = HistorialDialog(self.db, self)
+        dlg.exec()
 
     
