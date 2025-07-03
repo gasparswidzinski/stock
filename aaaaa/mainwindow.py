@@ -22,6 +22,8 @@ from estadisticas_dialog import EstadisticasDialog
 from PySide6.QtWidgets import QFileDialog
 import csv
 from PySide6.QtGui import QPixmap
+from openpyxl import Workbook
+from openpyxl.styles import Font, PatternFill
 
 
 class MainWindow(QMainWindow):
@@ -134,6 +136,10 @@ class MainWindow(QMainWindow):
         act_exportar_historial = QAction("Exportar historial a CSV", self)
         act_exportar_historial.triggered.connect(self._exportar_historial_csv)
         menu_ver.addAction(act_exportar_historial)
+        
+        act_exportar_excel = QAction("Exportar inventario a Excel", self)
+        act_exportar_excel.triggered.connect(self._exportar_inventario_excel)
+        menu_ver.addAction(act_exportar_excel)
 
 
         
@@ -895,5 +901,79 @@ class MainWindow(QMainWindow):
         layout.addWidget(btn_cerrar)
 
         dlg.exec()
+    
+    def _exportar_inventario_excel(self):
+
+        ruta, _ = QFileDialog.getSaveFileName(
+            self,
+            "Guardar inventario como Excel",
+            "inventario.xlsx",
+            "Archivos Excel (*.xlsx)"
+        )
+        if not ruta:
+            return
+
+        c = self.db.conn.cursor()
+        c.execute("""
+            SELECT c.id, c.nombre, c.cantidad, c.stock_minimo, c.ubicacion, c.proveedor,
+                GROUP_CONCAT(e.nombre, ', ') as etiquetas
+            FROM componentes c
+            LEFT JOIN componentes_etiquetas ce ON c.id = ce.componente_id
+            LEFT JOIN etiquetas e ON ce.etiqueta_id = e.id
+            GROUP BY c.id
+            ORDER BY c.nombre COLLATE NOCASE
+        """)
+        filas = c.fetchall()
+
+        try:
+            wb = Workbook()
+            ws = wb.active
+            ws.title = "Inventario"
+
+            # Encabezados
+            headers = [
+                "ID", "Nombre", "Cantidad", "Stock mínimo",
+                "Ubicación", "Proveedor", "Etiquetas"
+            ]
+            header_font = Font(bold=True, color="FFFFFF")
+            header_fill = PatternFill("solid", fgColor="4F81BD")
+
+            for col_num, header in enumerate(headers, 1):
+                cell = ws.cell(row=1, column=col_num, value=header)
+                cell.font = header_font
+                cell.fill = header_fill
+
+            # Filas de datos
+            for row_num, r in enumerate(filas, 2):
+                ws.cell(row=row_num, column=1, value=r["id"])
+                ws.cell(row=row_num, column=2, value=r["nombre"])
+                ws.cell(row=row_num, column=3, value=r["cantidad"])
+                ws.cell(row=row_num, column=4, value=r["stock_minimo"])
+                ws.cell(row=row_num, column=5, value=r["ubicacion"])
+                ws.cell(row=row_num, column=6, value=r["proveedor"])
+                ws.cell(row=row_num, column=7, value=r["etiquetas"])
+
+            # Ajuste de ancho
+            for col in ws.columns:
+                max_length = 0
+                column = col[0].column_letter
+                for cell in col:
+                    if cell.value:
+                        max_length = max(max_length, len(str(cell.value)))
+                adjusted_width = (max_length + 2)
+                ws.column_dimensions[column].width = adjusted_width
+
+            wb.save(ruta)
+            QMessageBox.information(
+                self, "Exportación exitosa",
+                f"Inventario exportado correctamente a:\n{ruta}"
+            )
+
+        except Exception as e:
+            QMessageBox.warning(
+                self, "Error al exportar",
+                f"No se pudo exportar el inventario:\n{e}"
+            )
+
 
 
