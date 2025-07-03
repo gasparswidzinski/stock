@@ -12,13 +12,13 @@ class DashboardWidget(QWidget):
         layout = QVBoxLayout(self)
         layout.setAlignment(Qt.AlignTop)
 
-        # Estadísticas
+        
         self.label_total = QLabel()
         self.label_stock_bajo = QLabel()
         self.label_total_stock = QLabel()
         layout.addWidget(self._grupo_estadisticas())
 
-        # Últimos proyectos
+       
         layout.addWidget(self._tabla_proyectos())
 
         self._actualizar_datos()
@@ -38,6 +38,8 @@ class DashboardWidget(QWidget):
         self.tabla = QTableWidget()
         self.tabla.setColumnCount(3)
         self.tabla.setHorizontalHeaderLabels(["Nombre", "Fecha", "Tipo"])
+        self.tabla.setSelectionBehavior(QTableWidget.SelectRows)
+        self.tabla.setSelectionMode(QTableWidget.MultiSelection)
         self.tabla.setEditTriggers(QTableWidget.NoEditTriggers)
         self.tabla.setSelectionMode(QTableWidget.NoSelection)
         self.tabla.setFocusPolicy(Qt.NoFocus)

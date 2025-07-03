@@ -444,6 +444,10 @@ class MainWindow(QMainWindow):
         tabla.setHorizontalHeaderLabels([
             "ID", "Etiqueta", "Nombre", "Cantidad", "Stock mínimo", "Ubicación", "Proveedor"
         ])
+        tabla.setSelectionBehavior(QTableWidget.SelectRows)
+        tabla.setSelectionMode(QTableWidget.MultiSelection)
+        print("Modo de selección:", tabla.selectionMode())
+
         tabla.setEditTriggers(QTableWidget.NoEditTriggers)
         tabla.setSelectionBehavior(QTableWidget.SelectRows)
         tabla.setSelectionMode(QTableWidget.ExtendedSelection)  

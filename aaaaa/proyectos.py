@@ -16,7 +16,7 @@ class ProyectoWidget(QWidget):
 
         self.setFocusPolicy(Qt.StrongFocus)
 
-        # Cargar todos los componentes con cantidad inicial 0
+        
         self.componentes = []
         todos = self.db.obtener_componentes_todos()
         for comp in todos:
@@ -28,6 +28,8 @@ class ProyectoWidget(QWidget):
         self.table.setColumnCount(4)
         self.table.setHorizontalHeaderLabels(["ID", "Nombre", "Cantidad", "Stock disponible"])
         self.table.setEditTriggers(QTableWidget.DoubleClicked | QTableWidget.SelectedClicked)
+        self.table.setSelectionBehavior(QTableWidget.SelectRows)
+        self.table.setSelectionMode(QTableWidget.MultiSelection)
         layout.addWidget(self.table)
 
         botones = QHBoxLayout()
@@ -47,6 +49,7 @@ class ProyectoWidget(QWidget):
         self.table.itemChanged.connect(self._on_cantidad_editada)
 
         self._actualizar_tabla()
+        
 
     def keyPressEvent(self, event):
         super().keyPressEvent(event)

@@ -18,6 +18,8 @@ class ProyectosDialog(QDialog):
         self.tabla_proyectos.setColumnCount(4)
         self.tabla_proyectos.setHorizontalHeaderLabels(["ID", "Nombre", "Fecha", "Tipo"])
         self.tabla_proyectos.setSelectionBehavior(QTableWidget.SelectRows)
+        self.tabla_proyectos.setSelectionMode(QTableWidget.MultiSelection)
+        self.tabla_proyectos.setSelectionBehavior(QTableWidget.SelectRows)
         self.tabla_proyectos.setEditTriggers(QTableWidget.NoEditTriggers)
         self.tabla_proyectos.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         layout.addWidget(QLabel("Proyectos:"))
