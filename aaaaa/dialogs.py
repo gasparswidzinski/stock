@@ -5,10 +5,10 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Qt, Signal, Slot
 from PySide6.QtGui import QIcon
 from PySide6 import QtCore
+from fancy_dialog import FancyDialog
 
 
-
-class ItemDialog(QDialog):
+class ItemDialog(FancyDialog):
     componente_guardado = Signal(int)
 
     def __init__(self, db, parent=None, comp_id=None):

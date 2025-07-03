@@ -56,3 +56,11 @@ QTableWidget {
     selection-background-color: #1976d2;
     selection-color: white;
 }
+QPushButton {
+    transition: all 0.2s ease;
+}
+
+QPushButton:hover {
+    padding: 4px;
+    margin: -2px;
+}

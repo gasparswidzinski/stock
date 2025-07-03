@@ -4,30 +4,30 @@
 }
 
 QMainWindow {
-    background-color: #f0f0f0;
+    background-color: #f8f6f0; /* crema suave */
     color: #222;
 }
 
 QMenuBar, QMenu {
-    background-color: #e0e0e0;
+    background-color: #e6e4dc;
     color: #222;
 }
 
 QMenu::item:selected {
-    background-color: #d0d0d0;
+    background-color: #d4d2c8;
 }
 
 QToolBar {
-    background-color: #e0e0e0;
+    background-color: #e6e4dc;
 }
 
 QDialog, QDockWidget, QWidget {
-    background-color: #ffffff;
+    background-color: #f8f6f0; /* crema suave */
     color: #222;
 }
 
 QLineEdit, QTextEdit, QSpinBox, QTableWidget, QPushButton {
-    background-color: #fafafa;
+    background-color: #f0eee8;
     border: 1px solid #ccc;
     border-radius: 4px;
     padding: 4px;
@@ -38,15 +38,15 @@ QLineEdit:focus, QTextEdit:focus, QSpinBox:focus {
 }
 
 QPushButton {
-    background-color: #e0e0e0;
+    background-color: #e6e4dc;
 }
 
 QPushButton:hover {
-    background-color: #d5d5d5;
+    background-color: #d4d2c8;
 }
 
 QHeaderView::section {
-    background-color: #e0e0e0;
+    background-color: #e6e4dc;
     color: #222;
     padding: 4px;
 }

@@ -72,3 +72,14 @@ class DashboardWidget(QWidget):
         self.label_total.setText(f"🧮 Total de componentes: {total}")
         self.label_stock_bajo.setText(f"🔴 Con stock bajo: {bajos}")
         self.label_total_stock.setText(f"📦 Unidades totales en stock: {total_stock}")
+    
+    def showEvent(self, event):
+        super().showEvent(event)
+        self.setWindowOpacity(0.0)
+        self.anim = QtCore.QPropertyAnimation(self, b"windowOpacity")
+        self.anim.setDuration(300)
+        self.anim.setStartValue(0.0)
+        self.anim.setEndValue(1.0)
+        self.anim.setEasingCurve(QtCore.QEasingCurve.InOutQuad)
+        self.anim.start()
+
