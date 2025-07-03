@@ -80,6 +80,10 @@ class MainWindow(QMainWindow):
         shortcut_historial = QShortcut(QKeySequence("Ctrl+H"), self)
         shortcut_historial.activated.connect(self._abrir_dialogo_proyectos)
         
+        act_importar = QAction("Importar proyecto desde CSV", self)
+        act_importar.triggered.connect(self._importar_proyecto_csv)
+        menu_ver.addAction(act_importar)
+        
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Insert:
             self._on_agregar_componente()
@@ -529,4 +533,43 @@ class MainWindow(QMainWindow):
         dlg = ProyectosDialog(self.db, self)
         dlg.exec()
 
+    def _importar_proyecto_csv(self):
+        from PySide6.QtWidgets import QFileDialog, QMessageBox
+        import csv
 
+        ruta, _ = QFileDialog.getOpenFileName(
+            self,
+            "Seleccionar CSV",
+            "",
+            "Archivos CSV (*.csv)"
+        )
+        if not ruta:
+            return
+
+        componentes = []
+        try:
+            with open(ruta, newline="", encoding="utf-8") as f:
+                reader = csv.reader(f)
+                headers = next(reader)
+                for row in reader:
+                    if len(row) < 2:
+                        continue
+                    comp_id = int(row[0].strip())
+                    cantidad = int(row[1].strip())
+                    if cantidad <= 0:
+                        continue
+                    componentes.append({"id": comp_id, "cantidad": cantidad})
+        except Exception as e:
+            QMessageBox.warning(self, "Error", f"No se pudo leer el archivo:\n{e}")
+            return
+
+        if not componentes:
+            QMessageBox.warning(self, "Error", "El archivo no contiene datos válidos.")
+            return
+
+        # Crear el ProyectoWidget con estos componentes
+        from proyectos import ProyectoWidget
+        widget = ProyectoWidget(self.db, self)
+        widget.componentes = componentes
+        widget._actualizar_tabla()
+        self.setCentralWidget(widget)
