@@ -54,6 +54,7 @@ class MainWindow(QMainWindow):
         menu_archivo.addAction(act_salir)
 
         toolbar = self.addToolBar("Principal")
+        toolbar.setObjectName("MainToolbar")
 
         self.edit_buscar = QLineEdit()
         self.edit_buscar.setPlaceholderText("Buscar...")
@@ -125,7 +126,7 @@ class MainWindow(QMainWindow):
         shortcut_historial = QShortcut(QKeySequence("Ctrl+M"), self)
         shortcut_historial.activated.connect(self._abrir_historial)
         
-        act_estadisticas = QAction("Ver estadísticas", self)
+        act_estadisticas = QAction("Ver estadísticas avanzadas", self)
         act_estadisticas.triggered.connect(self._abrir_estadisticas)
         menu_ver.addAction(act_estadisticas)
         
@@ -140,6 +141,11 @@ class MainWindow(QMainWindow):
         act_exportar_excel = QAction("Exportar inventario a Excel", self)
         act_exportar_excel.triggered.connect(self._exportar_inventario_excel)
         menu_ver.addAction(act_exportar_excel)
+        
+        act_exportar_historial_excel = QAction("Exportar historial a Excel", self)
+        act_exportar_historial_excel.triggered.connect(self._exportar_historial_excel)
+        menu_ver.addAction(act_exportar_historial_excel)
+
 
 
         
@@ -769,7 +775,6 @@ class MainWindow(QMainWindow):
     def _abrir_estadisticas(self):
         dlg = EstadisticasDialog(self.db, self)
         dlg.exec()
-    
     def _exportar_inventario_csv(self):
         
 
@@ -974,6 +979,70 @@ class MainWindow(QMainWindow):
                 self, "Error al exportar",
                 f"No se pudo exportar el inventario:\n{e}"
             )
+    def _exportar_historial_excel(self):
+       
+        ruta, _ = QFileDialog.getSaveFileName(
+            self,
+            "Guardar historial como Excel",
+            "historial.xlsx",
+            "Archivos Excel (*.xlsx)"
+        )
+        if not ruta:
+            return
+
+        c = self.db.conn.cursor()
+        c.execute("""
+            SELECT h.fecha_hora, h.accion, c.nombre, h.cantidad, h.descripcion
+            FROM historial h
+            LEFT JOIN componentes c ON h.componente_id = c.id
+            ORDER BY h.fecha_hora DESC
+        """)
+        filas = c.fetchall()
+
+        try:
+            wb = Workbook()
+            ws = wb.active
+            ws.title = "Historial"
+
+            # Encabezados
+            headers = ["Fecha y Hora", "Acción", "Componente", "Cantidad", "Descripción"]
+            header_font = Font(bold=True, color="FFFFFF")
+            header_fill = PatternFill("solid", fgColor="4F81BD")
+
+            for col_num, header in enumerate(headers, 1):
+                cell = ws.cell(row=1, column=col_num, value=header)
+                cell.font = header_font
+                cell.fill = header_fill
+
+            # Filas de datos
+            for row_num, r in enumerate(filas, 2):
+                ws.cell(row=row_num, column=1, value=r["fecha_hora"])
+                ws.cell(row=row_num, column=2, value=r["accion"])
+                ws.cell(row=row_num, column=3, value=r["nombre"])
+                ws.cell(row=row_num, column=4, value=r["cantidad"])
+                ws.cell(row=row_num, column=5, value=r["descripcion"])
+
+            # Ajuste de ancho
+            for col in ws.columns:
+                max_length = 0
+                column = col[0].column_letter
+                for cell in col:
+                    if cell.value:
+                        max_length = max(max_length, len(str(cell.value)))
+                ws.column_dimensions[column].width = max_length + 2
+
+            wb.save(ruta)
+            QMessageBox.information(
+                self, "Exportación exitosa",
+                f"Historial exportado correctamente a:\n{ruta}"
+            )
+
+        except Exception as e:
+            QMessageBox.warning(
+                self, "Error al exportar",
+                f"No se pudo exportar el historial:\n{e}"
+            )
+
 
 
 

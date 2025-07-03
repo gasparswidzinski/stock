@@ -61,3 +61,16 @@ QPushButton:hover {
     padding: 4px;
     margin: -2px;
 }
+QTabBar::tab {
+    background: #303134;
+    color: #e8eaed;
+    padding: 6px;
+    border: 1px solid #3c4043;
+    border-top-left-radius: 4px;
+    border-top-right-radius: 4px;
+}
+
+QTabBar::tab:selected {
+    background: #3c4043;
+    color: #ffffff;
+}
