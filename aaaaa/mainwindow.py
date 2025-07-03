@@ -47,6 +47,16 @@ class MainWindow(QMainWindow):
         shortcut_buscar.activated.connect(self._mostrar_dialogo_busqueda)
         
         menu_ver = menubar.addMenu("Menu")
+        
+        menu_tema = menubar.addMenu("Tema")
+
+        act_tema_claro = QAction("Tema Claro", self)
+        act_tema_claro.triggered.connect(lambda: self._cargar_tema("tema_claro.qss"))
+        menu_tema.addAction(act_tema_claro)
+
+        act_tema_oscuro = QAction("Tema Oscuro", self)
+        act_tema_oscuro.triggered.connect(lambda: self._cargar_tema("tema_oscuro.qss"))
+        menu_tema.addAction(act_tema_oscuro)
        
         act_ver_etiquetas = QAction("Administrar etiquetas", self)
         act_ver_etiquetas.triggered.connect(self._on_administrar_etiquetas)
@@ -582,3 +592,9 @@ class MainWindow(QMainWindow):
     def _mostrar_dashboard(self):
         dashboard = DashboardWidget(self.db, self)
         self.setCentralWidget(dashboard)
+    
+    def _cargar_tema(self, nombre_archivo):
+        import os
+        ruta = os.path.join(os.path.dirname(__file__), nombre_archivo)
+        with open(ruta, "r", encoding="utf-8") as f:
+            self.setStyleSheet(f.read())
