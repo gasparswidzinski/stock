@@ -1,13 +1,12 @@
 from PySide6.QtWidgets import (
     QDialog, QLineEdit, QTextEdit, QSpinBox, QPushButton, QFormLayout,
-    QHBoxLayout, QListWidget, QMessageBox, QCompleter
+    QHBoxLayout, QListWidget, QMessageBox, QCompleter, QFileDialog
 )
 from PySide6.QtCore import Qt, Signal, Slot
 from PySide6.QtGui import QIcon
 from PySide6 import QtCore
 from fancy_dialog import FancyDialog
 from datetime import datetime
-
 
 class ItemDialog(FancyDialog):
     componente_guardado = Signal(int)
@@ -46,6 +45,16 @@ class ItemDialog(FancyDialog):
         self.edit_precio.setPlaceholderText("Ej. 0.10")
         layout.addRow("Precio unitario:", self.edit_precio)
 
+        # Campo y botón de imagen
+        self.edit_imagen = QLineEdit()
+        self.edit_imagen.setPlaceholderText("Ruta de la imagen...")
+        btn_buscar_imagen = QPushButton("Seleccionar imagen...")
+        btn_buscar_imagen.clicked.connect(self._seleccionar_imagen)
+        h_imagen = QHBoxLayout()
+        h_imagen.addWidget(self.edit_imagen)
+        h_imagen.addWidget(btn_buscar_imagen)
+        layout.addRow("Imagen:", h_imagen)
+
         etiquetas_existentes = self.db.obtener_todas_etiquetas()
         self.edit_nueva_etiqueta = QLineEdit()
         completer = QCompleter(etiquetas_existentes)
@@ -63,7 +72,6 @@ class ItemDialog(FancyDialog):
 
         btn_guardar = QPushButton(QIcon("icons/save.png"), "Guardar")
         btn_guardar.setIconSize(QtCore.QSize(24, 24))
-
         btn_cancelar = QPushButton(QIcon("icons/cancel.png"), "Cancelar")
         btn_cancelar.setIconSize(QtCore.QSize(24, 24))
         btn_guardar.clicked.connect(self._on_guardar)
@@ -72,6 +80,16 @@ class ItemDialog(FancyDialog):
         h_btn.addWidget(btn_guardar)
         h_btn.addWidget(btn_cancelar)
         layout.addRow("", h_btn)
+
+    def _seleccionar_imagen(self):
+        ruta, _ = QFileDialog.getOpenFileName(
+            self,
+            "Seleccionar imagen",
+            "",
+            "Imágenes (*.png *.jpg *.jpeg *.bmp *.gif)"
+        )
+        if ruta:
+            self.edit_imagen.setText(ruta)
 
     def _cargar_datos(self):
         c = self.db.conn.cursor()
@@ -90,13 +108,13 @@ class ItemDialog(FancyDialog):
         self.edit_proveedor.setText(row.get("proveedor", "") or "")
         self.edit_fecha_compra.setText(row.get("fecha_compra", "") or "")
         self.spin_stock_min.setValue(row.get("stock_minimo", 0) or 0)
+        self.edit_imagen.setText(row.get("imagen_path", "") or "")
         precio = row.get("precio_unitario")
         if precio is not None:
             self.edit_precio.setText(str(precio))
         etiquetas = self.db.obtener_etiquetas_por_componente(self.comp_id)
         for tag in etiquetas:
             self.list_etiquetas.addItem(tag)
-
 
     @Slot()
     def _on_agregar_etiqueta(self):
@@ -124,6 +142,7 @@ class ItemDialog(FancyDialog):
             "proveedor": self.edit_proveedor.text().strip(),
             "fecha_compra": self.edit_fecha_compra.text().strip() or None,
             "stock_minimo": self.spin_stock_min.value(),
+            "imagen_path": self.edit_imagen.text().strip() or None,
         }
         precio_text = self.edit_precio.text().strip()
         if precio_text:
@@ -142,6 +161,7 @@ class ItemDialog(FancyDialog):
             comp_id = self.comp_id
         else:
             comp_id = self.db.agregar_componente(datos, etiqueta_list)
+
         c = self.db.conn.cursor()
         accion = "Edición" if self.comp_id else "Alta"
         descripcion = "Edición de componente" if self.comp_id else "Nuevo componente agregado"
