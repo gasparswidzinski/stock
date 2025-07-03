@@ -89,7 +89,6 @@ class ProyectoWidget(QWidget):
             stock_item = QTableWidgetItem(str(stock_disp))
             stock_item.setTextAlignment(Qt.AlignCenter)
 
-            # Resaltar si solicitado > stock
             if c["cantidad"] > stock_disp:
                 cantidad_item.setBackground(Qt.red)
                 cantidad_item.setForeground(Qt.white)
@@ -147,4 +146,4 @@ class ProyectoWidget(QWidget):
         return True
 
     def _cerrar(self):
-        self.main_window.setCentralWidget(None)
+        self.main_window._mostrar_dashboard()
