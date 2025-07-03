@@ -25,6 +25,9 @@ from PySide6.QtGui import QPixmap
 from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill
 from busqueda_avanzada_dialog import BusquedaAvanzadaDialog
+import smtplib
+from email.mime.text import MIMEText
+
 
 
 class MainWindow(QMainWindow):
@@ -466,9 +469,11 @@ class MainWindow(QMainWindow):
             from PySide6.QtWidgets import QMessageBox
             QMessageBox.warning(
                 self,
-                "Stock bajo",
+                "⚠️ Alerta de stock bajo",
                 f"Los siguientes componentes tienen stock por debajo del mínimo:\n\n{lista}"
             )
+            self._enviar_alerta_email(resultados)
+
     def _entrada_rapida_stock(self):
         from PySide6.QtWidgets import QInputDialog, QMessageBox
         comp_id_str, ok = QInputDialog.getText(self, "Entrada rápida de stock", "ID del componente:")
@@ -1051,6 +1056,40 @@ class MainWindow(QMainWindow):
         
         dlg = BusquedaAvanzadaDialog(self.db, self)
         dlg.exec()
+    
+    def _enviar_alerta_email(self, items):
+        
+        # 🔹 CONFIGURACIÓN SMTP
+        smtp_server = "smtp.gmail.com"
+        smtp_port = 587
+        smtp_user = "macacodrip121@gmail.com"      # Cambiá esto
+        smtp_password = "12345"       # Cambiá esto
+
+        # 🔹 DESTINATARIO
+        destinatario = "macacodrip121@gmail.com"    # Cambiá esto si querés otro email
+
+        asunto = "🔔 Alerta de Stock Bajo"
+        cuerpo = "Los siguientes componentes están por debajo del stock mínimo:\n\n"
+        cuerpo += "\n".join(
+            f"- {r['nombre']} (Stock: {r['cantidad']}, Mínimo: {r['stock_minimo']})"
+            for r in items
+        )
+
+        mensaje = MIMEText(cuerpo, "plain", "utf-8")
+        mensaje["Subject"] = asunto
+        mensaje["From"] = smtp_user
+        mensaje["To"] = destinatario
+
+        try:
+            server = smtplib.SMTP(smtp_server, smtp_port)
+            server.starttls()
+            server.login(smtp_user, smtp_password)
+            server.sendmail(smtp_user, [destinatario], mensaje.as_string())
+            server.quit()
+            print("✅ Email de alerta enviado.")
+        except Exception as e:
+            print("❌ Error al enviar email:", e)
+
 
 
 
