@@ -598,6 +598,9 @@ class MainWindow(QMainWindow):
 
 
         cargar_datos()
+        tabla.itemDoubleClicked.connect(lambda item: self._mostrar_detalle_componente(
+        int(tabla.item(item.row(), 1).text())
+         ))
         layout.addWidget(tabla)
 
         btn_editar = QPushButton("Editar seleccionado")
@@ -847,5 +850,50 @@ class MainWindow(QMainWindow):
                 self, "Error al exportar",
                 f"No se pudo exportar el historial:\n{e}"
             )
+
+    def _mostrar_detalle_componente(self, comp_id):
+        c = self.db.conn.cursor()
+        c.execute("SELECT * FROM componentes WHERE id=?", (comp_id,))
+        r = c.fetchone()
+        if not r:
+            QMessageBox.warning(self, "Error", "No se encontró el componente.")
+            return
+
+        dlg = QDialog(self)
+        dlg.setWindowTitle(f"Detalle de '{r['nombre']}'")
+        dlg.resize(500, 600)
+        layout = QVBoxLayout(dlg)
+
+        # Imagen
+        imagen_path = r["imagen_path"]
+        if imagen_path and os.path.isfile(imagen_path):
+            pixmap = QPixmap(imagen_path).scaled(400, 400, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+            lbl_img = QLabel()
+            lbl_img.setPixmap(pixmap)
+            lbl_img.setAlignment(Qt.AlignCenter)
+            layout.addWidget(lbl_img)
+
+        # Detalles
+        detalles = f"""
+    <b>ID:</b> {r['id']}<br>
+    <b>Nombre:</b> {r['nombre']}<br>
+    <b>Valor:</b> {r['valor'] or '-'}<br>
+    <b>Cantidad:</b> {r['cantidad']}<br>
+    <b>Stock mínimo:</b> {r['stock_minimo'] or '-'}<br>
+    <b>Ubicación:</b> {r['ubicacion'] or '-'}<br>
+    <b>Proveedor:</b> {r['proveedor'] or '-'}<br>
+    <b>Descripción:</b><br>{r['descripcion'] or '-'}
+    """
+        lbl_detalle = QLabel(detalles)
+        lbl_detalle.setTextFormat(Qt.RichText)
+        lbl_detalle.setWordWrap(True)
+        layout.addWidget(lbl_detalle)
+
+        # Botón cerrar
+        btn_cerrar = QPushButton("Cerrar")
+        btn_cerrar.clicked.connect(dlg.accept)
+        layout.addWidget(btn_cerrar)
+
+        dlg.exec()
 
 
