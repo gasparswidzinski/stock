@@ -19,6 +19,8 @@ import os
 import shutil
 from datetime import datetime
 from estadisticas_dialog import EstadisticasDialog
+from PySide6.QtWidgets import QFileDialog
+import csv
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -122,6 +124,15 @@ class MainWindow(QMainWindow):
         act_estadisticas = QAction("Ver estadísticas", self)
         act_estadisticas.triggered.connect(self._abrir_estadisticas)
         menu_ver.addAction(act_estadisticas)
+        
+        act_exportar_inventario = QAction("Exportar inventario a CSV", self)
+        act_exportar_inventario.triggered.connect(self._exportar_inventario_csv)
+        menu_ver.addAction(act_exportar_inventario)
+
+        act_exportar_historial = QAction("Exportar historial a CSV", self)
+        act_exportar_historial.triggered.connect(self._exportar_historial_csv)
+        menu_ver.addAction(act_exportar_historial)
+
 
         
     def keyPressEvent(self, event):
@@ -736,3 +747,92 @@ class MainWindow(QMainWindow):
     def _abrir_estadisticas(self):
         dlg = EstadisticasDialog(self.db, self)
         dlg.exec()
+    
+    def _exportar_inventario_csv(self):
+        
+
+        ruta, _ = QFileDialog.getSaveFileName(
+            self,
+            "Guardar inventario como CSV",
+            "inventario.csv",
+            "Archivos CSV (*.csv)"
+        )
+        if not ruta:
+            return
+
+        c = self.db.conn.cursor()
+        c.execute("""
+            SELECT c.id, c.nombre, c.cantidad, c.stock_minimo, c.ubicacion, c.proveedor,
+                GROUP_CONCAT(e.nombre, ', ') as etiquetas
+            FROM componentes c
+            LEFT JOIN componentes_etiquetas ce ON c.id = ce.componente_id
+            LEFT JOIN etiquetas e ON ce.etiqueta_id = e.id
+            GROUP BY c.id
+            ORDER BY c.nombre COLLATE NOCASE
+        """)
+        filas = c.fetchall()
+
+        try:
+            with open(ruta, "w", newline="", encoding="utf-8") as f:
+                writer = csv.writer(f)
+                writer.writerow([
+                    "ID", "Nombre", "Cantidad", "Stock mínimo",
+                    "Ubicación", "Proveedor", "Etiquetas"
+                ])
+                for r in filas:
+                    writer.writerow([
+                        r["id"], r["nombre"], r["cantidad"], r["stock_minimo"],
+                        r["ubicacion"], r["proveedor"], r["etiquetas"]
+                    ])
+            QMessageBox.information(
+                self, "Exportación exitosa",
+                f"Inventario exportado correctamente a:\n{ruta}"
+            )
+        except Exception as e:
+            QMessageBox.warning(
+                self, "Error al exportar",
+                f"No se pudo exportar el inventario:\n{e}"
+            )
+    def _exportar_historial_csv(self):
+        
+        ruta, _ = QFileDialog.getSaveFileName(
+            self,
+            "Guardar historial como CSV",
+            "historial.csv",
+            "Archivos CSV (*.csv)"
+        )
+        if not ruta:
+            return
+
+        c = self.db.conn.cursor()
+        c.execute("""
+            SELECT h.fecha_hora, h.accion, c.nombre, h.cantidad, h.descripcion
+            FROM historial h
+            LEFT JOIN componentes c ON h.componente_id = c.id
+            ORDER BY h.fecha_hora DESC
+        """)
+        filas = c.fetchall()
+
+        try:
+            with open(ruta, "w", newline="", encoding="utf-8") as f:
+                writer = csv.writer(f)
+                writer.writerow([
+                    "Fecha y Hora", "Acción", "Componente",
+                    "Cantidad", "Descripción"
+                ])
+                for r in filas:
+                    writer.writerow([
+                        r["fecha_hora"], r["accion"], r["nombre"],
+                        r["cantidad"], r["descripcion"]
+                    ])
+            QMessageBox.information(
+                self, "Exportación exitosa",
+                f"Historial exportado correctamente a:\n{ruta}"
+            )
+        except Exception as e:
+            QMessageBox.warning(
+                self, "Error al exportar",
+                f"No se pudo exportar el historial:\n{e}"
+            )
+
+
