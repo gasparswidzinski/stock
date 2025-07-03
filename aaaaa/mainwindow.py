@@ -24,6 +24,7 @@ import csv
 from PySide6.QtGui import QPixmap
 from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill
+from busqueda_avanzada_dialog import BusquedaAvanzadaDialog
 
 
 class MainWindow(QMainWindow):
@@ -145,6 +146,10 @@ class MainWindow(QMainWindow):
         act_exportar_historial_excel = QAction("Exportar historial a Excel", self)
         act_exportar_historial_excel.triggered.connect(self._exportar_historial_excel)
         menu_ver.addAction(act_exportar_historial_excel)
+        
+        act_busqueda_avanzada = QAction("Búsqueda avanzada", self)
+        act_busqueda_avanzada.triggered.connect(self._abrir_busqueda_avanzada)
+        menu_ver.addAction(act_busqueda_avanzada)
 
 
 
@@ -1042,6 +1047,11 @@ class MainWindow(QMainWindow):
                 self, "Error al exportar",
                 f"No se pudo exportar el historial:\n{e}"
             )
+    def _abrir_busqueda_avanzada(self):
+        
+        dlg = BusquedaAvanzadaDialog(self.db, self)
+        dlg.exec()
+
 
 
 
