@@ -472,7 +472,7 @@ class MainWindow(QMainWindow):
                 "⚠️ Alerta de stock bajo",
                 f"Los siguientes componentes tienen stock por debajo del mínimo:\n\n{lista}"
             )
-            self._enviar_alerta_email(resultados)
+            #self._enviar_alerta_email(resultados)
 
     def _entrada_rapida_stock(self):
         from PySide6.QtWidgets import QInputDialog, QMessageBox
