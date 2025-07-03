@@ -6,6 +6,9 @@ from PySide6.QtCore import Slot
 from dialogs import ItemDialog
 from PySide6.QtGui import QColor
 from PySide6.QtCore import Qt
+from PySide6.QtGui import QIcon
+from PySide6 import QtCore
+
 
 class TagDockWidget(QDockWidget):
     def __init__(self, etiqueta, db, parent=None):
@@ -34,9 +37,12 @@ class TagDockWidget(QDockWidget):
         v.addWidget(self.table)
 
         btn_layout = QHBoxLayout()
-        btn_editar = QPushButton("Editar")
+        btn_editar = QPushButton(QIcon("icons/edit.png"), "Editar")
+        btn_editar.setIconSize(QtCore.QSize(24, 24))
+
         btn_editar.clicked.connect(self._editar_seleccionado)
-        btn_eliminar = QPushButton("Eliminar")
+        btn_eliminar = QPushButton(QIcon("icons/delete.png"), "Eliminar")
+        btn_eliminar.setIconSize(QtCore.QSize(24, 24))
         btn_eliminar.clicked.connect(self._eliminar_seleccionado)
         btn_layout.addWidget(btn_editar)
         btn_layout.addWidget(btn_eliminar)

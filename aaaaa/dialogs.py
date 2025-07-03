@@ -3,6 +3,10 @@ from PySide6.QtWidgets import (
     QHBoxLayout, QListWidget, QMessageBox, QCompleter
 )
 from PySide6.QtCore import Qt, Signal, Slot
+from PySide6.QtGui import QIcon
+from PySide6 import QtCore
+
+
 
 class ItemDialog(QDialog):
     componente_guardado = Signal(int)
@@ -56,9 +60,12 @@ class ItemDialog(QDialog):
         self.list_etiquetas = QListWidget()
         layout.addRow("", self.list_etiquetas)
 
-        btn_guardar = QPushButton("Guardar")
+        btn_guardar = QPushButton(QIcon("icons/save.png"), "Guardar")
+        btn_guardar.setIconSize(QtCore.QSize(24, 24))
+
+        btn_cancelar = QPushButton(QIcon("icons/cancel.png"), "Cancelar")
+        btn_cancelar.setIconSize(QtCore.QSize(24, 24))
         btn_guardar.clicked.connect(self._on_guardar)
-        btn_cancelar = QPushButton("Cancelar")
         btn_cancelar.clicked.connect(self.reject)
         h_btn = QHBoxLayout()
         h_btn.addWidget(btn_guardar)

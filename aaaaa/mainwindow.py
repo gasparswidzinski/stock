@@ -11,6 +11,7 @@ from docks import TagDockWidget
 from proyectos import ProyectoWidget
 from proyectos_dialog import ProyectosDialog
 from dashboard import DashboardWidget
+from PySide6.QtGui import QIcon
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -25,29 +26,34 @@ class MainWindow(QMainWindow):
         self._mostrar_dashboard()
 
     def _build_actions(self):
+
         menubar = self.menuBar()
         menu_archivo = menubar.addMenu("Archivo")
-        act_agregar = QAction("Agregar componente", self)
+
+        act_agregar = QAction(QIcon("icons/add.png"), "Agregar componente", self)
         act_agregar.triggered.connect(self._on_agregar_componente)
         menu_archivo.addAction(act_agregar)
+
         act_salir = QAction("Salir", self)
         act_salir.triggered.connect(self.close)
         menu_archivo.addAction(act_salir)
 
-
         toolbar = self.addToolBar("Principal")
+
         self.edit_buscar = QLineEdit()
         self.edit_buscar.setPlaceholderText("Buscar...")
         self.edit_buscar.returnPressed.connect(self._on_buscar_global)
         toolbar.addWidget(self.edit_buscar)
-        btn_buscar = QAction("Buscar", self)
+
+        btn_buscar = QAction(QIcon("icons/inventory.png"), "Buscar", self)
         btn_buscar.triggered.connect(self._on_buscar_global)
         toolbar.addAction(btn_buscar)
+
         shortcut_buscar = QShortcut(QKeySequence("Ctrl+F"), self)
         shortcut_buscar.activated.connect(self._mostrar_dialogo_busqueda)
-        
-        menu_ver = menubar.addMenu("Menu")
-        
+
+        menu_ver = menubar.addMenu("Menú")
+
         menu_tema = menubar.addMenu("Tema")
 
         act_tema_claro = QAction("Tema Claro", self)
@@ -57,44 +63,47 @@ class MainWindow(QMainWindow):
         act_tema_oscuro = QAction("Tema Oscuro", self)
         act_tema_oscuro.triggered.connect(lambda: self._cargar_tema("tema_oscuro.qss"))
         menu_tema.addAction(act_tema_oscuro)
-       
-        act_ver_etiquetas = QAction("Administrar etiquetas", self)
+
+        act_ver_etiquetas = QAction(QIcon("icons/folder.png"), "Administrar etiquetas", self)
         act_ver_etiquetas.triggered.connect(self._on_administrar_etiquetas)
         menu_ver.addAction(act_ver_etiquetas)
-       
-        act_tema_oscuro = QAction("Activar tema oscuro", self)
-        act_tema_oscuro.triggered.connect(self.aplicar_tema_oscuro)
-        menu_ver.addAction(act_tema_oscuro)
-        
-        act_tema_claro = QAction("Volver al tema claro", self)
-        act_tema_claro.triggered.connect(self.aplicar_tema_claro)
-        menu_ver.addAction(act_tema_claro)
-        
-        act_nuevo_proyecto = QAction("Nuevo Proyecto", self)
+
+        act_activar_oscuro = QAction("Activar tema oscuro", self)
+        act_activar_oscuro.triggered.connect(self.aplicar_tema_oscuro)
+        menu_ver.addAction(act_activar_oscuro)
+
+        act_volver_claro = QAction("Volver al tema claro", self)
+        act_volver_claro.triggered.connect(self.aplicar_tema_claro)
+        menu_ver.addAction(act_volver_claro)
+
+        act_nuevo_proyecto = QAction(QIcon("icons/folder.png"), "Nuevo Proyecto", self)
         act_nuevo_proyecto.triggered.connect(self._nuevo_proyecto)
         menu_ver.addAction(act_nuevo_proyecto)
-        
-        shortcut_nuevo = QShortcut(QKeySequence("Ctrl+N"), self)
-        shortcut_nuevo.activated.connect(self._on_agregar_componente)
-        
-        shortcut_proyecto = QShortcut(QKeySequence("Ctrl+P"), self)
-        shortcut_proyecto.activated.connect(self._nuevo_proyecto)
-        
-        shortcut_stock = QShortcut(QKeySequence("F3"), self)
-        shortcut_stock.activated.connect(self._entrada_rapida_stock)
-        
-        shortcut_todo = QShortcut(QKeySequence("F4"), self)
-        shortcut_todo.activated.connect(self._mostrar_todo_stock)
-        
-        act_ver_proyectos = QAction("Ver proyectos guardados", self)
+
+        act_ver_proyectos = QAction(QIcon("icons/folder.png"), "Ver proyectos guardados", self)
         act_ver_proyectos.triggered.connect(self._abrir_dialogo_proyectos)
         menu_ver.addAction(act_ver_proyectos)
-        shortcut_historial = QShortcut(QKeySequence("Ctrl+H"), self)
-        shortcut_historial.activated.connect(self._abrir_dialogo_proyectos)
-        
-        act_importar = QAction("Importar proyecto desde CSV", self)
+
+        act_importar = QAction(QIcon("icons/inventory.png"), "Importar proyecto desde CSV", self)
         act_importar.triggered.connect(self._importar_proyecto_csv)
         menu_ver.addAction(act_importar)
+
+        # Atajos de teclado
+        shortcut_nuevo = QShortcut(QKeySequence("Ctrl+N"), self)
+        shortcut_nuevo.activated.connect(self._on_agregar_componente)
+
+        shortcut_proyecto = QShortcut(QKeySequence("Ctrl+P"), self)
+        shortcut_proyecto.activated.connect(self._nuevo_proyecto)
+
+        shortcut_stock = QShortcut(QKeySequence("F3"), self)
+        shortcut_stock.activated.connect(self._entrada_rapida_stock)
+
+        shortcut_todo = QShortcut(QKeySequence("F4"), self)
+        shortcut_todo.activated.connect(self._mostrar_todo_stock)
+
+        shortcut_historial = QShortcut(QKeySequence("Ctrl+H"), self)
+        shortcut_historial.activated.connect(self._abrir_dialogo_proyectos)
+
         
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Insert:

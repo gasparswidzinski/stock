@@ -2,6 +2,9 @@ from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QLabel, QPushButton, QHBoxLayout
 )
 from PySide6.QtCore import Qt
+from PySide6.QtGui import QIcon
+from PySide6 import QtCore
+
 
 
 class DashboardWidget(QWidget):
@@ -33,13 +36,19 @@ class DashboardWidget(QWidget):
         # Botones de acción rápida
         botones_layout = QHBoxLayout()
 
-        btn_nuevo_componente = QPushButton("➕ Nuevo Componente")
+        btn_nuevo_componente = QPushButton(QIcon("icons/add.png"), "Nuevo Componente")
+        btn_nuevo_componente.setIconSize(QtCore.QSize(24, 24))
+        btn_nuevo_componente.clicked.connect(self.main_window._on_agregar_componente)
         btn_nuevo_componente.clicked.connect(self.main_window._on_agregar_componente)
 
-        btn_nuevo_proyecto = QPushButton("🛠️ Nuevo Proyecto")
+        btn_nuevo_proyecto = QPushButton(QIcon("icons/folder.png"), "Nuevo Proyecto")
+        btn_nuevo_proyecto.setIconSize(QtCore.QSize(24, 24))
+        btn_nuevo_proyecto.clicked.connect(self.main_window._nuevo_proyecto)
         btn_nuevo_proyecto.clicked.connect(self.main_window._nuevo_proyecto)
 
-        btn_ver_stock = QPushButton("🔍 Ver Stock Completo")
+        btn_ver_stock = QPushButton(QIcon("icons/inventory.png"), "Ver Stock Completo")
+        btn_ver_stock.setIconSize(QtCore.QSize(24, 24))
+        btn_ver_stock.clicked.connect(self.main_window._mostrar_todo_stock)
         btn_ver_stock.clicked.connect(self.main_window._mostrar_todo_stock)
 
         botones_layout.addWidget(btn_nuevo_componente)

@@ -4,6 +4,8 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtCore import Qt
 from dialogs import ItemDialog
+from PySide6.QtGui import QIcon
+from PySide6 import QtCore
 
 
 class ProyectoWidget(QWidget):
@@ -33,11 +35,14 @@ class ProyectoWidget(QWidget):
         layout.addWidget(self.table)
 
         botones = QHBoxLayout()
-        btn_guardar = QPushButton("Guardar prototipo")
+        btn_guardar = QPushButton(QIcon("icons/save.png"), "Guardar prototipo")
+        btn_guardar.setIconSize(QtCore.QSize(24, 24))
         btn_guardar.clicked.connect(self._guardar_prototipo)
-        btn_soldar = QPushButton("Soldar")
+        btn_soldar = QPushButton(QIcon("icons/folder.png"), "Soldar")
+        btn_soldar.setIconSize(QtCore.QSize(24, 24))
         btn_soldar.clicked.connect(self._soldar_proyecto)
-        btn_cerrar = QPushButton("Cerrar")
+        btn_cerrar = QPushButton(QIcon("icons/cancel.png"), "Cerrar")
+        btn_cerrar.setIconSize(QtCore.QSize(24, 24))
         btn_cerrar.clicked.connect(self._cerrar)
 
         botones.addWidget(btn_guardar)
