@@ -8,7 +8,8 @@ def obtener_ruta_bd():
 
 class DBManager:
     def __init__(self):
-        self.conn = sqlite3.connect(obtener_ruta_bd())
+        self.db_path = obtener_ruta_bd()
+        self.conn = sqlite3.connect(self.db_path)
         self.conn.row_factory = sqlite3.Row
         self._inicializar_bd()
 

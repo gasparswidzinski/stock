@@ -14,6 +14,10 @@ from dashboard import DashboardWidget
 from PySide6.QtGui import QIcon
 from PySide6 import QtGui
 from historial_dialog import HistorialDialog
+from PySide6.QtWidgets import QMessageBox
+import os
+import shutil
+from datetime import datetime
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -26,6 +30,7 @@ class MainWindow(QMainWindow):
         self._restore_ui_state()
         self._abrir_etiquetas_existentes()
         self._alertar_stock_bajo()
+        self._verificar_integridad_datos()
         self._mostrar_dashboard()
 
     def _build_actions(self):
@@ -301,9 +306,29 @@ class MainWindow(QMainWindow):
         dlg.exec()
 
     def closeEvent(self, event):
+
+        # Guardar geometría y estado
         settings = QSettings("MiInventario", "AppStock")
         settings.setValue("geometry", self.saveGeometry())
         settings.setValue("windowState", self.saveState())
+
+        # Backup automático
+        try:
+            backups_dir = os.path.join(os.path.dirname(__file__), "backups")
+            if not os.path.exists(backups_dir):
+                os.makedirs(backups_dir)
+
+            fecha = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+            backup_file = os.path.join(backups_dir, f"stock_backup_{fecha}.db")
+
+            shutil.copyfile(self.db.db_path, backup_file)
+        except Exception as e:
+            QMessageBox.warning(
+                self,
+                "Backup fallido",
+                f"No se pudo crear el backup automático:\n{e}"
+            )
+
         super().closeEvent(event)
 
     def _restore_ui_state(self):
@@ -654,4 +679,31 @@ class MainWindow(QMainWindow):
         dlg = HistorialDialog(self.db, self)
         dlg.exec()
 
-    
+    def _verificar_integridad_datos(self):
+        errores = []
+
+        c = self.db.conn.cursor()
+
+        # Verificar stock negativo
+        c.execute("""
+            SELECT id, nombre, cantidad
+            FROM componentes
+            WHERE cantidad < 0
+            ORDER BY nombre COLLATE NOCASE
+        """)
+        negativos = c.fetchall()
+        if negativos:
+            for r in negativos:
+                errores.append(
+                    f"Stock negativo: {r['nombre']} (ID {r['id']}), cantidad: {r['cantidad']}"
+                )
+
+        # Si hay errores, mostrar alerta
+        if errores:
+            from PySide6.QtWidgets import QMessageBox
+            mensaje = "\n".join(errores)
+            QMessageBox.warning(
+                self,
+                "Problemas de integridad de datos",
+                f"Se detectaron los siguientes problemas:\n\n{mensaje}"
+            )
