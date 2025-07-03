@@ -12,12 +12,14 @@ from proyectos import ProyectoWidget
 from proyectos_dialog import ProyectosDialog
 from dashboard import DashboardWidget
 from PySide6.QtGui import QIcon
+from PySide6 import QtGui
 
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Control de Stock de Componentes")
         self.db = DBManager()
+        self.tema_actual = "claro"
         self.docks = {}
         self._build_actions()
         self._restore_ui_state()
@@ -497,6 +499,7 @@ class MainWindow(QMainWindow):
             for r in componentes:
                 row = tabla.rowCount()
                 tabla.insertRow(row)
+
                 tabla.setItem(row, 0, QTableWidgetItem(str(r["id"])))
                 tabla.setItem(row, 1, QTableWidgetItem(r["etiqueta"]))
                 tabla.setItem(row, 2, QTableWidgetItem(r["nombre"]))
@@ -504,7 +507,29 @@ class MainWindow(QMainWindow):
                 tabla.setItem(row, 4, QTableWidgetItem(str(r["stock_minimo"]) if r["stock_minimo"] is not None else "-"))
                 tabla.setItem(row, 5, QTableWidgetItem(r["ubicacion"] or ""))
                 tabla.setItem(row, 6, QTableWidgetItem(r["proveedor"] or ""))
-            tabla.resizeColumnsToContents()
+
+                # Pintar fondo si stock bajo
+                try:
+                    cantidad = int(r["cantidad"]) if r["cantidad"] is not None else 0
+                    stock_minimo = int(r["stock_minimo"]) if r["stock_minimo"] is not None else None
+                except Exception:
+                    cantidad = 0
+                    stock_minimo = None
+
+                if stock_minimo is not None and cantidad < stock_minimo:
+                    for col in range(tabla.columnCount()):
+                        item = tabla.item(row, col)
+                        if item:
+                            if self.tema_actual == "oscuro":
+                                color_fondo = QtGui.QColor("#b71c1c")  # rojo oscuro
+                                color_texto = QtGui.QColor("#ffffff")  # texto blanco
+                            else:
+                                color_fondo = QtGui.QColor("#ffcdd2")  # rojo claro
+                                color_texto = QtGui.QColor("#000000")  # texto negro
+
+                            item.setBackground(color_fondo)
+                            item.setForeground(color_texto)
+
 
         cargar_datos()
         layout.addWidget(tabla)
@@ -607,4 +632,10 @@ class MainWindow(QMainWindow):
         ruta = os.path.join(os.path.dirname(__file__), nombre_archivo)
         with open(ruta, "r", encoding="utf-8") as f:
             self.setStyleSheet(f.read())
+
+        if "oscuro" in nombre_archivo:
+            self.tema_actual = "oscuro"
+        else:
+            self.tema_actual = "claro"
+
     
