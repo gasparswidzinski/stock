@@ -110,6 +110,7 @@ class ProyectoWidget(QWidget):
         componentes_a_guardar = [c for c in self.componentes if c["cantidad"] > 0]
         self.db.guardar_proyecto(nombre.strip(), "prototipo", componentes_a_guardar)
         QMessageBox.information(self, "Guardado", "Prototipo guardado exitosamente.")
+        self.main_window._mostrar_dashboard()
 
     def _soldar_proyecto(self):
         if not self._validar_cantidades():
@@ -133,6 +134,7 @@ class ProyectoWidget(QWidget):
             return
         exito, _ = self.db.soldar_proyecto(nombre.strip(), componentes_a_soldar)
         QMessageBox.information(self, "Soldado", "Proyecto soldado y stock actualizado.")
+        self.main_window._mostrar_dashboard()
 
     def _validar_cantidades(self):
         for c in self.componentes:

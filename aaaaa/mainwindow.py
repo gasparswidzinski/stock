@@ -580,5 +580,5 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(widget)
     
     def _mostrar_dashboard(self):
-        widget = DashboardWidget(self.db, self)
-        self.setCentralWidget(widget)
+        dashboard = DashboardWidget(self.db, self)
+        self.setCentralWidget(dashboard)
