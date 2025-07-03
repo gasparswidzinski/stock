@@ -9,6 +9,7 @@ from db import DBManager
 from dialogs import ItemDialog
 from docks import TagDockWidget
 from proyectos import ProyectoWidget
+from proyectos_dialog import ProyectosDialog
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -72,6 +73,12 @@ class MainWindow(QMainWindow):
         
         shortcut_todo = QShortcut(QKeySequence("F4"), self)
         shortcut_todo.activated.connect(self._mostrar_todo_stock)
+        
+        act_ver_proyectos = QAction("Ver proyectos guardados", self)
+        act_ver_proyectos.triggered.connect(self._abrir_dialogo_proyectos)
+        menu_ver.addAction(act_ver_proyectos)
+        shortcut_historial = QShortcut(QKeySequence("Ctrl+H"), self)
+        shortcut_historial.activated.connect(self._abrir_dialogo_proyectos)
         
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Insert:
@@ -516,6 +523,10 @@ class MainWindow(QMainWindow):
         layout.addLayout(h)
 
         dlg.resize(800, 500)
+        dlg.exec()
+        
+    def _abrir_dialogo_proyectos(self):
+        dlg = ProyectosDialog(self.db, self)
         dlg.exec()
 
 
