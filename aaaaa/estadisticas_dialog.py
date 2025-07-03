@@ -7,6 +7,7 @@ from matplotlib.figure import Figure
 from datetime import datetime, timedelta
 from collections import defaultdict
 from PySide6.QtCore import Qt
+from PySide6.QtWidgets import QComboBox, QFileDialog
 
 
 class EstadisticasDialog(QDialog):
@@ -40,63 +41,65 @@ class EstadisticasDialog(QDialog):
         layout.addLayout(h)
 
     def _tab_evolucion(self):
+        
+
         widget = QWidget()
         layout = QVBoxLayout(widget)
 
-        fig = Figure(figsize=(8,4))
-        ax = fig.add_subplot(111)
+       
+        combo = QComboBox()
+        combo.addItems(["Últimos 7 días", "Últimos 30 días", "Últimos 90 días"])
+        layout.addWidget(combo)
 
-        # Configurar colores para tema oscuro
-        fig.patch.set_facecolor("#202124")
-        ax.set_facecolor("#202124")
-        ax.tick_params(colors="#e8eaed")
-        ax.xaxis.label.set_color("#e8eaed")
-        ax.yaxis.label.set_color("#e8eaed")
-        ax.title.set_color("#e8eaed")
+        
+        self.fig_evolucion = Figure(figsize=(8,4))
+        self.ax_evolucion = self.fig_evolucion.add_subplot(111)
 
-        # Últimos 30 días
-        hoy = datetime.now().date()
-        fechas = [hoy - timedelta(days=i) for i in reversed(range(30))]
-        fecha_labels = [f.strftime("%d-%m") for f in fechas]
-        stock_por_dia = defaultdict(int)
+        
+        self.fig_evolucion.patch.set_facecolor("#202124")
+        self.ax_evolucion.set_facecolor("#202124")
+        self.ax_evolucion.tick_params(colors="#e8eaed")
+        self.ax_evolucion.xaxis.label.set_color("#e8eaed")
+        self.ax_evolucion.yaxis.label.set_color("#e8eaed")
+        self.ax_evolucion.title.set_color("#e8eaed")
 
-        c = self.db.conn.cursor()
-        c.execute("""
-            SELECT fecha_hora, accion, cantidad
-            FROM historial
-            ORDER BY fecha_hora ASC
-        """)
-        filas = c.fetchall()
+        self.canvas_evolucion = FigureCanvas(self.fig_evolucion)
+        layout.addWidget(self.canvas_evolucion)
 
-        acumulado = 0
-        movimientos = []
-        for r in filas:
-            fecha = datetime.fromisoformat(r["fecha_hora"]).date()
-            cantidad = r["cantidad"] or 0
-            if r["accion"] == "Alta":
-                acumulado += cantidad
-            elif r["accion"] == "Baja":
-                acumulado -= cantidad
-            movimientos.append((fecha, acumulado))
+        
+        btn_guardar = QPushButton("Guardar imagen…")
+        layout.addWidget(btn_guardar)
 
-        ult_valor = 0
-        for f in fechas:
-            dias_previos = [v for v in movimientos if v[0] <= f]
-            if dias_previos:
-                ult_valor = dias_previos[-1][1]
-            stock_por_dia[f] = max(ult_valor, 0)
+       
+        def actualizar():
+            texto = combo.currentText()
+            dias = 7
+            if "30" in texto:
+                dias = 30
+            elif "90" in texto:
+                dias = 90
+            self._actualizar_grafico_evolucion(dias)
 
-        valores = [stock_por_dia[f] for f in fechas]
-        ax.plot(fecha_labels, valores, marker="o", color="#4F81BD")
-        ax.set_title("Evolución del stock en los últimos 30 días")
-        ax.set_xlabel("Fecha")
-        ax.set_ylabel("Stock total acumulado")
-        ax.grid(True)
+        combo.currentIndexChanged.connect(actualizar)
 
-        fig.autofmt_xdate()
-        canvas = FigureCanvas(fig)
-        layout.addWidget(canvas)
+       
+        def guardar_imagen():
+            ruta, _ = QFileDialog.getSaveFileName(
+                self,
+                "Guardar imagen del gráfico",
+                "evolucion_stock.png",
+                "PNG (*.png);;PDF (*.pdf)"
+            )
+            if ruta:
+                self.fig_evolucion.savefig(ruta, bbox_inches="tight")
+
+        btn_guardar.clicked.connect(guardar_imagen)
+
+        
+        self._actualizar_grafico_evolucion(30)
+
         return widget
+
 
     def _tab_ranking(self):
         widget = QWidget()
@@ -167,3 +170,59 @@ class EstadisticasDialog(QDialog):
         lbl.setAlignment(Qt.AlignmentFlag.AlignTop)
         layout.addWidget(lbl)
         return widget
+
+    def _actualizar_grafico_evolucion(self, dias):
+
+        hoy = datetime.now().date()
+        fechas = [hoy - timedelta(days=i) for i in reversed(range(dias))]
+        fecha_labels = [f.strftime("%d-%m") for f in fechas]
+        stock_por_dia = defaultdict(int)
+
+        c = self.db.conn.cursor()
+        c.execute("""
+            SELECT fecha_hora, accion, cantidad
+            FROM historial
+            ORDER BY fecha_hora ASC
+        """)
+        filas = c.fetchall()
+
+        acumulado = 0
+        movimientos = []
+        for r in filas:
+            fecha = datetime.fromisoformat(r["fecha_hora"]).date()
+            cantidad = r["cantidad"] or 0
+            if r["accion"] == "Alta":
+                acumulado += cantidad
+            elif r["accion"] == "Baja":
+                acumulado -= cantidad
+            movimientos.append((fecha, acumulado))
+
+        ult_valor = 0
+        for f in fechas:
+            dias_previos = [v for v in movimientos if v[0] <= f]
+            if dias_previos:
+                ult_valor = dias_previos[-1][1]
+            stock_por_dia[f] = max(ult_valor, 0)
+
+        valores = [stock_por_dia[f] for f in fechas]
+
+        self.ax_evolucion.clear()
+        self.ax_evolucion.set_facecolor("#202124")
+        self.ax_evolucion.plot(fecha_labels, valores, marker="o", color="#4F81BD")
+        self.ax_evolucion.set_title(f"Evolución del stock en los últimos {dias} días")
+        self.ax_evolucion.set_xlabel("Fecha")
+        self.ax_evolucion.set_ylabel("Stock total acumulado")
+        if dias > 30:
+            paso = dias // 10 
+            indices = list(range(0, dias, paso))
+            etiquetas_reducidas = [fecha_labels[i] for i in indices]
+            self.ax_evolucion.set_xticks(indices)
+            self.ax_evolucion.set_xticklabels(etiquetas_reducidas, rotation=45)
+        else:
+            self.ax_evolucion.set_xticks(range(len(fecha_labels)))
+            self.ax_evolucion.set_xticklabels(fecha_labels, rotation=45)
+        self.ax_evolucion.grid(True)
+        self.fig_evolucion.autofmt_xdate(rotation=45)
+        self.fig_evolucion.tight_layout()
+        self.canvas_evolucion.draw()
+        self.canvas_evolucion.draw()
