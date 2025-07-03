@@ -589,16 +589,36 @@ class MainWindow(QMainWindow):
             selected = tabla.selectionModel().selectedRows()
             if not selected:
                 return
-            resp = QMessageBox.question(
-                dlg, "Confirmar eliminación",
-                f"¿Seguro que deseas eliminar {len(selected)} componente(s)?"
-            )
-            if resp != QMessageBox.Yes:
-                return
-            for idx in sorted(selected, key=lambda x: x.row(), reverse=True):
+
+            if len(selected) == 1:
+                idx = selected[0]
                 comp_id = int(tabla.item(idx.row(), 0).text())
+                nombre = tabla.item(idx.row(), 2).text()
+                resp = QMessageBox.question(
+                    dlg,
+                    "Confirmar eliminación",
+                    f"¿Seguro que deseas eliminar este componente?\n\n"
+                    f"🆔 ID: {comp_id}\n"
+                    f"📛 Nombre: {nombre}"
+                )
+                if resp != QMessageBox.Yes:
+                    return
                 self.db.eliminar_componente(comp_id)
+
+            else:
+                resp = QMessageBox.question(
+                    dlg,
+                    "Confirmar eliminación múltiple",
+                    f"¿Seguro que deseas eliminar {len(selected)} componentes seleccionados?"
+                )
+                if resp != QMessageBox.Yes:
+                    return
+                for idx in sorted(selected, key=lambda x: x.row(), reverse=True):
+                    comp_id = int(tabla.item(idx.row(), 0).text())
+                    self.db.eliminar_componente(comp_id)
+
             cargar_datos()
+
 
 
         btn_editar.clicked.connect(editar)
