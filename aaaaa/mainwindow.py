@@ -21,6 +21,8 @@ from datetime import datetime
 from estadisticas_dialog import EstadisticasDialog
 from PySide6.QtWidgets import QFileDialog
 import csv
+from PySide6.QtGui import QPixmap
+
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -514,9 +516,9 @@ class MainWindow(QMainWindow):
         layout = QVBoxLayout(dlg)
 
         tabla = QTableWidget()
-        tabla.setColumnCount(7)
+        tabla.setColumnCount(8)
         tabla.setHorizontalHeaderLabels([
-            "ID", "Etiqueta", "Nombre", "Cantidad", "Stock mínimo", "Ubicación", "Proveedor"
+            "", "ID", "Etiqueta", "Nombre", "Cantidad", "Stock mínimo", "Ubicación", "Proveedor"
         ])
         tabla.setSelectionBehavior(QTableWidget.SelectRows)
         tabla.setSelectionMode(QTableWidget.MultiSelection)
@@ -548,18 +550,29 @@ class MainWindow(QMainWindow):
                 })
             # Ordenar por etiqueta + nombre
             componentes.sort(key=lambda x: (x["etiqueta"].lower(), x["nombre"].lower()))
-
             for r in componentes:
                 row = tabla.rowCount()
                 tabla.insertRow(row)
 
-                tabla.setItem(row, 0, QTableWidgetItem(str(r["id"])))
-                tabla.setItem(row, 1, QTableWidgetItem(r["etiqueta"]))
-                tabla.setItem(row, 2, QTableWidgetItem(r["nombre"]))
-                tabla.setItem(row, 3, QTableWidgetItem(str(r["cantidad"])))
-                tabla.setItem(row, 4, QTableWidgetItem(str(r["stock_minimo"]) if r["stock_minimo"] is not None else "-"))
-                tabla.setItem(row, 5, QTableWidgetItem(r["ubicacion"] or ""))
-                tabla.setItem(row, 6, QTableWidgetItem(r["proveedor"] or ""))
+                # Columna 0: imagen
+                imagen_item = QTableWidgetItem()
+                ruta_img = r.get("imagen_path")
+                if ruta_img and os.path.isfile(ruta_img):
+                    pixmap = QPixmap(ruta_img).scaled(64, 64, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+                    imagen_item.setIcon(QIcon(pixmap))
+                else:
+                    imagen_item.setIcon(QIcon("icons/image_placeholder.png"))  # opcional
+
+                tabla.setItem(row, 0, imagen_item)
+
+                # Resto de columnas
+                tabla.setItem(row, 1, QTableWidgetItem(str(r["id"])))
+                tabla.setItem(row, 2, QTableWidgetItem(r["etiqueta"]))
+                tabla.setItem(row, 3, QTableWidgetItem(r["nombre"]))
+                tabla.setItem(row, 4, QTableWidgetItem(str(r["cantidad"])))
+                tabla.setItem(row, 5, QTableWidgetItem(str(r["stock_minimo"]) if r["stock_minimo"] is not None else "-"))
+                tabla.setItem(row, 6, QTableWidgetItem(r["ubicacion"] or ""))
+                tabla.setItem(row, 7, QTableWidgetItem(r["proveedor"] or ""))
 
                 # Pintar fondo si stock bajo
                 try:
@@ -596,7 +609,7 @@ class MainWindow(QMainWindow):
             sel = tabla.selectedItems()
             if not sel:
                 return
-            comp_id = int(tabla.item(sel[0].row(), 0).text())
+            comp_id = int(tabla.item(sel[0].row(), 1).text())
             dlg_edit = ItemDialog(self.db, self, comp_id=comp_id)
             dlg_edit.componente_guardado.connect(lambda _: cargar_datos())
             dlg_edit.exec()
