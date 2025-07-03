@@ -18,6 +18,7 @@ from PySide6.QtWidgets import QMessageBox
 import os
 import shutil
 from datetime import datetime
+from estadisticas_dialog import EstadisticasDialog
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -117,6 +118,10 @@ class MainWindow(QMainWindow):
         menu_ver.addAction(act_ver_historial)
         shortcut_historial = QShortcut(QKeySequence("Ctrl+M"), self)
         shortcut_historial.activated.connect(self._abrir_historial)
+        
+        act_estadisticas = QAction("Ver estadísticas", self)
+        act_estadisticas.triggered.connect(self._abrir_estadisticas)
+        menu_ver.addAction(act_estadisticas)
 
         
     def keyPressEvent(self, event):
@@ -727,3 +732,7 @@ class MainWindow(QMainWindow):
                 "Problemas de integridad de datos",
                 f"Se detectaron los siguientes problemas:\n\n{mensaje}"
             )
+
+    def _abrir_estadisticas(self):
+        dlg = EstadisticasDialog(self.db, self)
+        dlg.exec()
