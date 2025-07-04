@@ -534,39 +534,24 @@ class MainWindow(QMainWindow):
         )
     
     def _mostrar_todo_stock(self):
-        c = self.db.conn.cursor()
-        c.execute("""
-            SELECT id, nombre, cantidad, stock_minimo, ubicacion, proveedor
-            FROM componentes
-        """)
-        resultados = c.fetchall()
-        if not resultados:
-            from PySide6.QtWidgets import QMessageBox
-            QMessageBox.information(self, "Inventario vacío", "No hay componentes cargados.")
-            return
-
         from PySide6.QtWidgets import (
             QDialog, QVBoxLayout, QTableWidget, QTableWidgetItem,
             QPushButton, QHBoxLayout, QMessageBox
         )
+        from PySide6.QtCore import Qt
         from dialogs import ItemDialog
 
         dlg = QDialog(self)
-        dlg.setWindowTitle("Inventario completo por etiqueta")
+        dlg.setWindowTitle("Inventario completo")
         layout = QVBoxLayout(dlg)
 
         tabla = QTableWidget()
-        tabla.setColumnCount(8)
-        tabla.setHorizontalHeaderLabels([
-            "", "ID", "Etiqueta", "Nombre", "Cantidad", "Stock mínimo", "Ubicación", "Proveedor"
-        ])
         tabla.setSelectionBehavior(QTableWidget.SelectRows)
-        tabla.setSelectionMode(QTableWidget.MultiSelection)
-
+        tabla.setSelectionMode(QTableWidget.ExtendedSelection)
         tabla.setEditTriggers(QTableWidget.NoEditTriggers)
-        tabla.setSelectionBehavior(QTableWidget.SelectRows)
-        tabla.setSelectionMode(QTableWidget.ExtendedSelection)  
+        layout.addWidget(tabla)
 
+        modo_vista = self._obtener_vista_stock()
 
         def cargar_datos():
             tabla.setRowCount(0)
@@ -588,71 +573,69 @@ class MainWindow(QMainWindow):
                     "ubicacion": r["ubicacion"],
                     "proveedor": r["proveedor"],
                 })
-            # Ordenar por etiqueta + nombre
             componentes.sort(key=lambda x: (x["etiqueta"].lower(), x["nombre"].lower()))
+
+            # Configurar columnas según modo
+            if modo_vista == "compacta":
+                columnas = ["ID", "Nombre", "Cantidad"]
+            else:
+                columnas = ["ID", "Etiqueta", "Nombre", "Cantidad", "Stock mínimo", "Ubicación", "Proveedor"]
+
+            tabla.setColumnCount(len(columnas))
+            tabla.setHorizontalHeaderLabels(columnas)
+
             for r in componentes:
                 row = tabla.rowCount()
                 tabla.insertRow(row)
-
-                # Columna 0: imagen
-                imagen_item = QTableWidgetItem()
-                ruta_img = r.get("imagen_path")
-                if ruta_img and os.path.isfile(ruta_img):
-                    pixmap = QPixmap(ruta_img).scaled(64, 64, Qt.KeepAspectRatio, Qt.SmoothTransformation)
-                    imagen_item.setIcon(QIcon(pixmap))
+                if modo_vista == "compacta":
+                    tabla.setItem(row, 0, QTableWidgetItem(str(r["id"])))
+                    tabla.setItem(row, 1, QTableWidgetItem(r["nombre"]))
+                    tabla.setItem(row, 2, QTableWidgetItem(str(r["cantidad"])))
                 else:
-                    imagen_item.setIcon(QIcon("icons/image_placeholder.png"))  # opcional
+                    tabla.setItem(row, 0, QTableWidgetItem(str(r["id"])))
+                    tabla.setItem(row, 1, QTableWidgetItem(r["etiqueta"]))
+                    tabla.setItem(row, 2, QTableWidgetItem(r["nombre"]))
+                    tabla.setItem(row, 3, QTableWidgetItem(str(r["cantidad"])))
+                    tabla.setItem(row, 4, QTableWidgetItem(str(r["stock_minimo"]) if r["stock_minimo"] else "-"))
+                    tabla.setItem(row, 5, QTableWidgetItem(r["ubicacion"] or "-"))
+                    tabla.setItem(row, 6, QTableWidgetItem(r["proveedor"] or "-"))
 
-                tabla.setItem(row, 0, imagen_item)
+            tabla.resizeColumnsToContents()
 
-                # Resto de columnas
-                tabla.setItem(row, 1, QTableWidgetItem(str(r["id"])))
-                tabla.setItem(row, 2, QTableWidgetItem(r["etiqueta"]))
-                tabla.setItem(row, 3, QTableWidgetItem(r["nombre"]))
-                tabla.setItem(row, 4, QTableWidgetItem(str(r["cantidad"])))
-                tabla.setItem(row, 5, QTableWidgetItem(str(r["stock_minimo"]) if r["stock_minimo"] is not None else "-"))
-                tabla.setItem(row, 6, QTableWidgetItem(r["ubicacion"] or ""))
-                tabla.setItem(row, 7, QTableWidgetItem(r["proveedor"] or ""))
+            # 🔹 Colorear filas con stock bajo (solo modo detalle)
+            if modo_vista == "detalle":
+                for row in range(tabla.rowCount()):
+                    cantidad = int(tabla.item(row, 3).text())
+                    stock_min_text = tabla.item(row, 4).text()
+                    stock_min = int(stock_min_text) if stock_min_text != "-" else None
 
-                # Pintar fondo si stock bajo
-                try:
-                    cantidad = int(r["cantidad"]) if r["cantidad"] is not None else 0
-                    stock_minimo = int(r["stock_minimo"]) if r["stock_minimo"] is not None else None
-                except Exception:
-                    cantidad = 0
-                    stock_minimo = None
-
-                if stock_minimo is not None and cantidad < stock_minimo:
-                    for col in range(tabla.columnCount()):
-                        item = tabla.item(row, col)
-                        if item:
-                            if self.tema_actual == "oscuro":
-                                color_fondo = QtGui.QColor("#b71c1c")  # rojo oscuro
-                                color_texto = QtGui.QColor("#ffffff")  # texto blanco
-                            else:
-                                color_fondo = QtGui.QColor("#ffcdd2")  # rojo claro
-                                color_texto = QtGui.QColor("#000000")  # texto negro
-
-                            item.setBackground(color_fondo)
-                            item.setForeground(color_texto)
-
+                    if stock_min is not None and cantidad < stock_min:
+                        for col in range(tabla.columnCount()):
+                            tabla.item(row, col).setBackground(Qt.red)
+                            tabla.item(row, col).setForeground(Qt.white)
 
         cargar_datos()
-        tabla.itemDoubleClicked.connect(lambda item: self._mostrar_detalle_componente(
-        int(tabla.item(item.row(), 1).text())
-         ))
-        layout.addWidget(tabla)
 
+        
+        btn_cambiar_vista = QPushButton("Cambiar Vista")
         btn_editar = QPushButton("Editar seleccionado")
         btn_eliminar = QPushButton("Eliminar seleccionados")
-
         btn_cerrar = QPushButton("Cerrar")
+
+        def cambiar_vista():
+            nonlocal modo_vista
+            if modo_vista == "detalle":
+                modo_vista = "compacta"
+            else:
+                modo_vista = "detalle"
+            self._guardar_vista_stock(modo_vista)
+            cargar_datos()
 
         def editar():
             sel = tabla.selectedItems()
             if not sel:
                 return
-            comp_id = int(tabla.item(sel[0].row(), 1).text())
+            comp_id = int(tabla.item(sel[0].row(), 0).text())
             dlg_edit = ItemDialog(self.db, self, comp_id=comp_id)
             dlg_edit.componente_guardado.connect(lambda _: cargar_datos())
             dlg_edit.exec()
@@ -661,43 +644,24 @@ class MainWindow(QMainWindow):
             selected = tabla.selectionModel().selectedRows()
             if not selected:
                 return
-
-            if len(selected) == 1:
-                idx = selected[0]
+            resp = QMessageBox.question(
+                dlg, "Confirmar eliminación",
+                f"¿Seguro que deseas eliminar {len(selected)} componente(s)?"
+            )
+            if resp != QMessageBox.Yes:
+                return
+            for idx in sorted(selected, key=lambda x: x.row(), reverse=True):
                 comp_id = int(tabla.item(idx.row(), 0).text())
-                nombre = tabla.item(idx.row(), 2).text()
-                resp = QMessageBox.question(
-                    dlg,
-                    "Confirmar eliminación",
-                    f"¿Seguro que deseas eliminar este componente?\n\n"
-                    f"🆔 ID: {comp_id}\n"
-                    f"📛 Nombre: {nombre}"
-                )
-                if resp != QMessageBox.Yes:
-                    return
                 self.db.eliminar_componente(comp_id)
-
-            else:
-                resp = QMessageBox.question(
-                    dlg,
-                    "Confirmar eliminación múltiple",
-                    f"¿Seguro que deseas eliminar {len(selected)} componentes seleccionados?"
-                )
-                if resp != QMessageBox.Yes:
-                    return
-                for idx in sorted(selected, key=lambda x: x.row(), reverse=True):
-                    comp_id = int(tabla.item(idx.row(), 0).text())
-                    self.db.eliminar_componente(comp_id)
-
             cargar_datos()
 
-
-
+        btn_cambiar_vista.clicked.connect(cambiar_vista)
         btn_editar.clicked.connect(editar)
         btn_eliminar.clicked.connect(eliminar)
         btn_cerrar.clicked.connect(dlg.accept)
 
         h = QHBoxLayout()
+        h.addWidget(btn_cambiar_vista)
         h.addWidget(btn_editar)
         h.addWidget(btn_eliminar)
         h.addStretch()
@@ -706,6 +670,7 @@ class MainWindow(QMainWindow):
 
         dlg.resize(800, 500)
         dlg.exec()
+
         
     def _abrir_dialogo_proyectos(self):
         dlg = ProyectosDialog(self.db, self)
@@ -1159,6 +1124,15 @@ class MainWindow(QMainWindow):
         
         dlg = ConfiguracionDialog(self)
         dlg.exec()
+    
+    def _obtener_vista_stock(self):
+        settings = QSettings("MiInventario", "AppStock")
+        return settings.value("vista_stock", "detalle") 
+
+    def _guardar_vista_stock(self, modo):
+        settings = QSettings("MiInventario", "AppStock")
+        settings.setValue("vista_stock", modo)
+
 
 
 
