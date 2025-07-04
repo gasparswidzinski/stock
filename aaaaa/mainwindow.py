@@ -30,6 +30,7 @@ from email.mime.text import MIMEText
 from PySide6.QtWidgets import QGraphicsOpacityEffect
 from PySide6.QtCore import QPropertyAnimation, QEasingCurve
 from configuracion_dialog import ConfiguracionDialog
+from utils import cargar_tema
 
 
 
@@ -1074,56 +1075,28 @@ class MainWindow(QMainWindow):
             print("❌ Error al enviar email:", e)
     
     def _aplicar_configuracion_visual(self):
-        
         settings = QSettings("MiInventario", "AppStock")
         tema = settings.value("tema", "Claro")
-        color = settings.value("color_acento", "Azul")
-        tam_fuente = int(settings.value("tam_fuente", 10))
+        color = settings.value("color_acento", "#4F81BD")
+        tam_fuente_str = settings.value("tam_fuente", "11pt")
+        tam_fuente = int(tam_fuente_str.replace("pt", "").strip())
 
-       
-        archivo_tema = {
-            "Claro": "tema_claro.qss",
-            "Oscuro": "tema_oscuro.qss",
-            "Intermedio": "tema_intermedio.qss"
-        }.get(tema, "tema_claro.qss")
-
-        ruta_qss = os.path.join(os.path.dirname(__file__), archivo_tema)
-        qss_base = ""
-        if os.path.exists(ruta_qss):
-            with open(ruta_qss, "r", encoding="utf-8") as f:
-                qss_base = f.read()
-
-        
-        fuente_css = f"* {{ font-size: {tam_fuente}pt; }}"
-
-        
-        colores = {
-            "Azul": "#4F81BD",
-            "Verde": "#9BBB59",
-            "Naranja": "#F79646",
-            "Rojo": "#C0504D",
-            "Violeta": "#8064A2"
-        }
-        color_acento = colores.get(color, "#4F81BD")
-        acento_css = f"""
-        QPushButton {{
-            background-color: {color_acento};
-            color: white;
-        }}
-        QPushButton:hover {{
-            background-color: {color_acento};
-            border: 1px solid white;
-        }}
-        """
-
-        
-        self.setStyleSheet(qss_base + "\n" + fuente_css + "\n" + acento_css)
+        # Cargar tema correspondiente
+        if tema == "Claro":
+            cargar_tema(self, "tema_claro.qss", color, f"{tam_fuente}pt")
+        elif tema == "Oscuro":
+            cargar_tema(self, "tema_oscuro.qss", color, f"{tam_fuente}pt")
+        else:
+            cargar_tema(self, "tema_intermedio.qss", color, f"{tam_fuente}pt")
 
 
+
+    @Slot()
     def _abrir_configuracion(self):
-        
         dlg = ConfiguracionDialog(self)
-        dlg.exec()
+        if dlg.exec():
+            self._aplicar_configuracion_visual()
+
     
     def _obtener_vista_stock(self):
         settings = QSettings("MiInventario", "AppStock")
