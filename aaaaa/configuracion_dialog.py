@@ -1,76 +1,56 @@
 from PySide6.QtWidgets import (
-    QDialog, QVBoxLayout, QLabel, QPushButton, QComboBox, QSpinBox, QHBoxLayout
+    QDialog, QVBoxLayout, QComboBox, QLabel,
+    QPushButton, QHBoxLayout, QMessageBox
 )
-from PySide6.QtCore import Qt, QSettings
-
+from PySide6.QtCore import QSettings
 
 class ConfiguracionDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setWindowTitle("⚙️ Configuración de Apariencia")
-        self.resize(400, 250)
-
+        self.setWindowTitle("Configuración Visual")
         layout = QVBoxLayout(self)
 
-        # Tema
-        h_tema = QHBoxLayout()
-        h_tema.addWidget(QLabel("Tema:"))
         self.combo_tema = QComboBox()
         self.combo_tema.addItems(["Claro", "Oscuro", "Intermedio"])
-        h_tema.addWidget(self.combo_tema)
-        layout.addLayout(h_tema)
+        layout.addWidget(QLabel("Tema:"))
+        layout.addWidget(self.combo_tema)
 
-        # Color acento
-        h_color = QHBoxLayout()
-        h_color.addWidget(QLabel("Color de acento:"))
         self.combo_color = QComboBox()
         self.combo_color.addItems(["Azul", "Verde", "Naranja", "Rojo", "Violeta"])
-        h_color.addWidget(self.combo_color)
-        layout.addLayout(h_color)
+        layout.addWidget(QLabel("Color de acento:"))
+        layout.addWidget(self.combo_color)
 
-        # Tamaño de fuente
-        h_fuente = QHBoxLayout()
-        h_fuente.addWidget(QLabel("Tamaño de fuente:"))
-        self.spin_fuente = QSpinBox()
-        self.spin_fuente.setRange(8, 20)
-        h_fuente.addWidget(self.spin_fuente)
-        layout.addLayout(h_fuente)
+        self.combo_fuente = QComboBox()
+        self.combo_fuente.addItems(["10pt", "11pt", "12pt", "13pt"])
+        layout.addWidget(QLabel("Tamaño de fuente:"))
+        layout.addWidget(self.combo_fuente)
 
-        # Botones
-        btn_aplicar = QPushButton("Aplicar")
-        btn_aplicar.clicked.connect(self._aplicar)
+        botones = QHBoxLayout()
+        btn_guardar = QPushButton("Guardar")
+        btn_cancelar = QPushButton("Cancelar")
+        botones.addWidget(btn_guardar)
+        botones.addWidget(btn_cancelar)
+        layout.addLayout(botones)
 
-        btn_cerrar = QPushButton("Cerrar")
-        btn_cerrar.clicked.connect(self.accept)
+        btn_guardar.clicked.connect(self.guardar)
+        btn_cancelar.clicked.connect(self.reject)
 
-        h_btn = QHBoxLayout()
-        h_btn.addWidget(btn_aplicar)
-        h_btn.addStretch()
-        h_btn.addWidget(btn_cerrar)
-        layout.addLayout(h_btn)
+        self._cargar_configuracion()
 
-        # Cargar preferencias
-        self._cargar_preferencias()
-
-    def _cargar_preferencias(self):
+    def _cargar_configuracion(self):
         settings = QSettings("MiInventario", "AppStock")
         tema = settings.value("tema", "Claro")
         color = settings.value("color_acento", "Azul")
-        fuente = int(settings.value("tam_fuente", 10))
+        fuente = settings.value("tam_fuente", "11pt")
 
         self.combo_tema.setCurrentText(tema)
         self.combo_color.setCurrentText(color)
-        self.spin_fuente.setValue(fuente)
+        self.combo_fuente.setCurrentText(fuente)
 
-    def _aplicar(self):
-        tema = self.combo_tema.currentText()
-        color = self.combo_color.currentText()
-        tam_fuente = self.spin_fuente.value()
-
+    def guardar(self):
         settings = QSettings("MiInventario", "AppStock")
-        settings.setValue("tema", tema)
-        settings.setValue("color_acento", color)
-        settings.setValue("tam_fuente", tam_fuente)
-
-        # Aplicar inmediatamente
-        self.parent()._aplicar_configuracion_visual()
+        settings.setValue("tema", self.combo_tema.currentText())
+        settings.setValue("color_acento", self.combo_color.currentText())
+        settings.setValue("tam_fuente", self.combo_fuente.currentText())
+        QMessageBox.information(self, "Configuración", "Los cambios se aplicarán al reiniciar la aplicación.")
+        self.accept()
