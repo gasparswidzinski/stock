@@ -1,58 +1,64 @@
 * {
-    font-family: "Segoe UI", "Arial", sans-serif;
-    font-size: 10.5pt;
+    font-family: 'Segoe UI', sans-serif;
+    font-size: 11pt;
 }
 
 QMainWindow {
-    background-color: #f8f6f0; /* crema suave */
-    color: #222;
+    background-color: #ffffff;
+    color: #333;
 }
 
 QMenuBar, QMenu {
-    background-color: #e6e4dc;
-    color: #222;
+    background-color: #f0f0f0;
+    color: #333;
 }
 
 QMenu::item:selected {
-    background-color: #d4d2c8;
+    background-color: #d0d0d0;
 }
 
 QToolBar {
-    background-color: #e6e4dc;
+    background-color: #f0f0f0;
 }
 
 QDialog, QDockWidget, QWidget {
-    background-color: #f8f6f0; /* crema suave */
-    color: #222;
+    background-color: #ffffff;
+    color: #333;
 }
 
-QLineEdit, QTextEdit, QSpinBox, QTableWidget, QPushButton {
-    background-color: #f0eee8;
+QLabel, QListWidget, QLineEdit, QTextEdit, QSpinBox, QTableWidget, QPushButton {
+    background-color: #ffffff;
+    color: #333;
     border: 1px solid #ccc;
-    border-radius: 4px;
     padding: 4px;
 }
 
 QLineEdit:focus, QTextEdit:focus, QSpinBox:focus {
-    border: 1px solid #2196f3;
+    border: 1px solid #4F81BD;
 }
 
 QPushButton {
-    background-color: #e6e4dc;
+    border-radius: 4px;
+    padding: 4px 8px;
 }
 
 QPushButton:hover {
-    background-color: #d4d2c8;
+    background-color: #e0e0e0;
 }
 
 QHeaderView::section {
-    background-color: #e6e4dc;
-    color: #222;
-    padding: 4px;
+    background-color: #f0f0f0;
+    color: #333;
+    padding: 6px;
+    font-weight: bold;
 }
 
 QTableWidget {
-    gridline-color: #ccc;
-    selection-background-color: #90caf9;
+    gridline-color: #bbb;
+    selection-background-color: #c9c9c9;
     selection-color: #000;
+}
+
+QTableWidget::item {
+    padding: 6px;
 }
