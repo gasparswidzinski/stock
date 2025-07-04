@@ -7,6 +7,7 @@ from PySide6.QtGui import QIcon
 from PySide6 import QtCore
 from fancy_dialog import FancyDialog
 from datetime import datetime
+from utils import fade_in
 
 class ItemDialog(FancyDialog):
     componente_guardado = Signal(int)
@@ -19,6 +20,8 @@ class ItemDialog(FancyDialog):
         self._build_ui()
         if comp_id:
             self._cargar_datos()
+        fade_in(self)
+
 
     def _build_ui(self):
         layout = QFormLayout(self)

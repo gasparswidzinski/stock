@@ -27,6 +27,8 @@ from openpyxl.styles import Font, PatternFill
 from busqueda_avanzada_dialog import BusquedaAvanzadaDialog
 import smtplib
 from email.mime.text import MIMEText
+from PySide6.QtWidgets import QGraphicsOpacityEffect
+from PySide6.QtCore import QPropertyAnimation, QEasingCurve
 
 
 
@@ -43,6 +45,17 @@ class MainWindow(QMainWindow):
         self._alertar_stock_bajo()
         self._verificar_integridad_datos()
         self._mostrar_dashboard()
+        
+        effect = QGraphicsOpacityEffect(self)
+        self.setGraphicsEffect(effect)
+
+        anim = QPropertyAnimation(effect, b"opacity")
+        anim.setDuration(500)
+        anim.setStartValue(0)
+        anim.setEndValue(1)
+        anim.setEasingCurve(QEasingCurve.OutCubic)
+        anim.start()
+        self._fade_animation = anim
 
     def _build_actions(self):
 
