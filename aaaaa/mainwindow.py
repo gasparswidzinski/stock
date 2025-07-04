@@ -29,6 +29,7 @@ import smtplib
 from email.mime.text import MIMEText
 from PySide6.QtWidgets import QGraphicsOpacityEffect
 from PySide6.QtCore import QPropertyAnimation, QEasingCurve
+from configuracion_dialog import ConfiguracionDialog
 
 
 
@@ -45,7 +46,7 @@ class MainWindow(QMainWindow):
         self._alertar_stock_bajo()
         self._verificar_integridad_datos()
         self._mostrar_dashboard()
-        
+        self._aplicar_configuracion_visual()
         effect = QGraphicsOpacityEffect(self)
         self.setGraphicsEffect(effect)
 
@@ -166,6 +167,10 @@ class MainWindow(QMainWindow):
         act_busqueda_avanzada = QAction("Búsqueda avanzada", self)
         act_busqueda_avanzada.triggered.connect(self._abrir_busqueda_avanzada)
         menu_ver.addAction(act_busqueda_avanzada)
+        
+        act_configuracion = QAction("Configuración visual", self)
+        act_configuracion.triggered.connect(self._abrir_configuracion)
+        menu_ver.addAction(act_configuracion)
 
 
 
@@ -1102,7 +1107,58 @@ class MainWindow(QMainWindow):
             print("✅ Email de alerta enviado.")
         except Exception as e:
             print("❌ Error al enviar email:", e)
+    
+    def _aplicar_configuracion_visual(self):
+        
+        settings = QSettings("MiInventario", "AppStock")
+        tema = settings.value("tema", "Claro")
+        color = settings.value("color_acento", "Azul")
+        tam_fuente = int(settings.value("tam_fuente", 10))
 
+       
+        archivo_tema = {
+            "Claro": "tema_claro.qss",
+            "Oscuro": "tema_oscuro.qss",
+            "Intermedio": "tema_intermedio.qss"
+        }.get(tema, "tema_claro.qss")
+
+        ruta_qss = os.path.join(os.path.dirname(__file__), archivo_tema)
+        qss_base = ""
+        if os.path.exists(ruta_qss):
+            with open(ruta_qss, "r", encoding="utf-8") as f:
+                qss_base = f.read()
+
+        
+        fuente_css = f"* {{ font-size: {tam_fuente}pt; }}"
+
+        
+        colores = {
+            "Azul": "#4F81BD",
+            "Verde": "#9BBB59",
+            "Naranja": "#F79646",
+            "Rojo": "#C0504D",
+            "Violeta": "#8064A2"
+        }
+        color_acento = colores.get(color, "#4F81BD")
+        acento_css = f"""
+        QPushButton {{
+            background-color: {color_acento};
+            color: white;
+        }}
+        QPushButton:hover {{
+            background-color: {color_acento};
+            border: 1px solid white;
+        }}
+        """
+
+        
+        self.setStyleSheet(qss_base + "\n" + fuente_css + "\n" + acento_css)
+
+
+    def _abrir_configuracion(self):
+        
+        dlg = ConfiguracionDialog(self)
+        dlg.exec()
 
 
 
