@@ -6,8 +6,11 @@ from PySide6.QtCore import QPropertyAnimation
 
 def cargar_tema(window, archivo_qss, color_acento="#4F81BD", tam_fuente="11pt"):
     import os
+
     ruta = os.path.join(os.path.dirname(__file__), archivo_qss)
+
     if not os.path.exists(ruta):
+        from PySide6.QtWidgets import QMessageBox
         QMessageBox.warning(window, "Error", f"No se encontró el archivo de tema:\n{ruta}")
         return
 
@@ -19,6 +22,7 @@ def cargar_tema(window, archivo_qss, color_acento="#4F81BD", tam_fuente="11pt"):
         .replace("$COLOR_ACCENT", color_acento)
         .replace("$FONT_SIZE", tam_fuente)
     )
+
     window.setStyleSheet(estilo)
 
 

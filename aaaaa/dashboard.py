@@ -1,79 +1,63 @@
 from PySide6.QtWidgets import (
-    QWidget, QVBoxLayout, QLabel, QPushButton, QHBoxLayout, QGridLayout
+    QWidget, QVBoxLayout, QLabel, QPushButton, QGridLayout
 )
-from PySide6.QtCore import Qt, QSize
-from PySide6.QtGui import QIcon, QCursor
-from PySide6 import QtCore
-
+from PySide6.QtGui import QIcon
+from PySide6.QtCore import Qt
+from utils import fade_in
 
 class DashboardWidget(QWidget):
-    def __init__(self, db, main_window, parent=None):
-        super().__init__(parent)
+    def __init__(self, db, main_window):
+        super().__init__()
         self.db = db
         self.main_window = main_window
 
         layout = QVBoxLayout(self)
-        layout.setAlignment(Qt.AlignTop)
 
-        # Resumen de stock
+        # Labels separados
         self.label_total = QLabel()
         self.label_stock_bajo = QLabel()
         self.label_total_stock = QLabel()
+        for lbl in (self.label_total, self.label_stock_bajo, self.label_total_stock):
+            lbl.setAlignment(Qt.AlignLeft)
+            lbl.setStyleSheet("font-size: 11pt;")
+            layout.addWidget(lbl)
 
-        font = self.label_total.font()
-        font.setPointSize(12)
-        font.setBold(True)
-        self.label_total.setFont(font)
-        self.label_stock_bajo.setFont(font)
-        self.label_total_stock.setFont(font)
-
-        layout.addWidget(self.label_total)
-        layout.addWidget(self.label_stock_bajo)
-        layout.addWidget(self.label_total_stock)
-
-        layout.addSpacing(20)
-
-        # Botones de acción (6 botones rectangulares en 2 filas)
         grid = QGridLayout()
-        grid.setSpacing(15)
+        layout.addLayout(grid)
 
         def crear_boton(icono, texto, callback):
-            btn = QPushButton(f"  {texto}")
-            btn.setIcon(QIcon(f"icons/{icono}"))
-            btn.setIconSize(QSize(24, 24))
+            btn = QPushButton(QIcon(f"icons/{icono}"), f"  {texto}")
             btn.setMinimumHeight(50)
-            btn.setCursor(QCursor(Qt.PointingHandCursor))
             btn.setStyleSheet("""
                 QPushButton {
-                    font-size: 10pt;
+                    font-size: 10.5pt;
                     text-align: left;
-                    padding: 8px 16px;
-                    border-radius: 6px;
+                    padding: 8px;
                 }
                 QPushButton:hover {
-                    background-color: #d0d0d0;
+                    border: 1px solid #888;
                 }
             """)
             btn.clicked.connect(callback)
             return btn
 
-        # Botones (usa tus funciones de main_window)
-        btn1 = crear_boton("add.png", "Nuevo Componente", self.main_window._on_agregar_componente)
-        btn2 = crear_boton("folder.png", "Nuevo Proyecto", self.main_window._nuevo_proyecto)
-        btn3 = crear_boton("inventory.png", "Ver Stock", self.main_window._mostrar_todo_stock)
-        btn4 = crear_boton("import.png", "Importar Proyecto", self.main_window._importar_proyecto_csv)
-        btn5 = crear_boton("folder.png", "Ver Proyectos", self.main_window._abrir_dialogo_proyectos)
-        btn6 = crear_boton("tag.png", "Administrar Etiquetas", self.main_window._on_administrar_etiquetas)
+        btn_nuevo = crear_boton("add.png", "Nuevo Componente", self.main_window._on_agregar_componente)
+        btn_proyecto = crear_boton("folder.png", "Nuevo Proyecto", self.main_window._nuevo_proyecto)
+        btn_stock = crear_boton("inventory.png", "Ver Todo el Stock", self.main_window._mostrar_todo_stock)
+        btn_importar = crear_boton("import.png", "Importar Proyecto CSV", self.main_window._importar_proyecto_csv)
+        btn_proyectos = crear_boton("folder.png", "Ver Proyectos Guardados", self.main_window._abrir_dialogo_proyectos)
+        btn_etiquetas = crear_boton("tag.png", "Administrar Etiquetas", self.main_window._on_administrar_etiquetas)
 
-        # Agregar al grid (2 filas x 3 columnas)
-        grid.addWidget(btn1, 0, 0)
-        grid.addWidget(btn2, 0, 1)
-        grid.addWidget(btn3, 0, 2)
-        grid.addWidget(btn4, 1, 0)
-        grid.addWidget(btn5, 1, 1)
-        grid.addWidget(btn6, 1, 2)
+        grid.addWidget(btn_nuevo, 0, 0)
+        grid.addWidget(btn_proyecto, 0, 1)
+        grid.addWidget(btn_stock, 1, 0)
+        grid.addWidget(btn_importar, 1, 1)
+        grid.addWidget(btn_proyectos, 2, 0)
+        grid.addWidget(btn_etiquetas, 2, 1)
 
-        layout.addLayout(grid)
+        grid.setVerticalSpacing(12)
+        grid.setHorizontalSpacing(12)
+
         self._actualizar_datos()
 
     def _actualizar_datos(self):
@@ -93,11 +77,6 @@ class DashboardWidget(QWidget):
         self.label_total_stock.setText(f"📦 Unidades totales en stock: {total_stock}")
 
     def showEvent(self, event):
+        self._actualizar_datos()
+        fade_in(self)
         super().showEvent(event)
-        self.setWindowOpacity(0.0)
-        self.anim = QtCore.QPropertyAnimation(self, b"windowOpacity")
-        self.anim.setDuration(300)
-        self.anim.setStartValue(0.0)
-        self.anim.setEndValue(1.0)
-        self.anim.setEasingCurve(QtCore.QEasingCurve.InOutQuad)
-        self.anim.start()

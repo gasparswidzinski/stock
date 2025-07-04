@@ -1,8 +1,6 @@
-/* Tema Oscuro */
 QMainWindow {
     background-color: #202124;
     color: #e8eaed;
-    font-size: $FONT_SIZE;
 }
 
 QMenuBar, QMenu {
@@ -31,11 +29,12 @@ QLabel, QListWidget, QLineEdit, QTextEdit, QSpinBox, QTableWidget, QPushButton {
 }
 
 QPushButton {
-    background-color: $COLOR_ACCENT;
+    background-color: #3c4043;
     border-radius: 4px;
 }
+
 QPushButton:hover {
-    background-color: $COLOR_ACCENT;
+    background-color: #5f6368;
 }
 
 QHeaderView::section {
@@ -46,6 +45,6 @@ QHeaderView::section {
 
 QTableWidget {
     gridline-color: #444;
-    selection-background-color: $COLOR_ACCENT;
+    selection-background-color: #4F81BD;
     selection-color: white;
 }

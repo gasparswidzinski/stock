@@ -11,6 +11,7 @@ if __name__ == "__main__":
         app.setStyleSheet(f.read())
 
     window = MainWindow()
+
     from datetime import datetime
 
     hora_actual = datetime.now().hour
