@@ -1,6 +1,6 @@
 * {
     font-family: 'Segoe UI', sans-serif;
-    font-size: 11pt;
+    font-size: {font_size};
 }
 
 QMainWindow {
@@ -34,12 +34,14 @@ QLabel, QListWidget, QLineEdit, QTextEdit, QSpinBox, QTableWidget, QPushButton {
 }
 
 QLineEdit:focus, QTextEdit:focus, QSpinBox:focus {
-    border: 1px solid #4F81BD;
+    border: 1px solid {accent_color};
 }
 
 QPushButton {
     border-radius: 4px;
     padding: 4px 8px;
+    background-color: {accent_color};
+    color: white;
 }
 
 QPushButton:hover {
@@ -57,6 +59,7 @@ QTableWidget {
     gridline-color: #bbb;
     selection-background-color: #c9c5bb;
     selection-color: #000;
+    alternate-background-color: #eae6de;
 }
 
 QTableWidget::item {
