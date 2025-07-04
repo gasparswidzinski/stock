@@ -5,12 +5,13 @@ from PySide6.QtCore import QSettings
 
 # Diccionario de colores con nombre → hex
 COLOR_HEX = {
-    "Azul": "#4F81BD",
-    "Verde": "#2E8B57",
-    "Naranja": "#FFA500",
-    "Rojo": "#B22222",
-    "Violeta": "#800080"
+    "Azul": ("#4F81BD", "#3A6190"),
+    "Verde": ("#2E8B57", "#206744"),
+    "Naranja": ("#FFA500", "#CC8400"),
+    "Rojo": ("#B22222", "#841818"),
+    "Violeta": ("#800080", "#5A005A")
 }
+
 
 
 class ConfiguracionDialog(QDialog):
@@ -67,9 +68,13 @@ class ConfiguracionDialog(QDialog):
         tema = self.combo_tema.currentText()
         color_nombre = self.combo_color.currentText()
         fuente = self.combo_fuente.currentText()
+
+        color_hex, color_hover = COLOR_HEX[color_nombre]
+
         settings = QSettings("MiInventario", "AppStock")
         settings.setValue("tema", tema)
-        settings.setValue("color_acento", COLOR_HEX[color_nombre])
+        settings.setValue("color_acento", color_hex)
+        settings.setValue("color_acento_hover", color_hover)
         settings.setValue("tam_fuente", fuente)
         QMessageBox.information(self, "Guardado", "Configuración guardada correctamente.")
         self.accept()

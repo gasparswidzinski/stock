@@ -1,11 +1,8 @@
-* {
-    font-family: 'Segoe UI', sans-serif;
-    font-size: {font_size};
-}
-
+/* Tema Oscuro */
 QMainWindow {
     background-color: #202124;
     color: #e8eaed;
+    font-size: $FONT_SIZE;
 }
 
 QMenuBar, QMenu {
@@ -21,7 +18,7 @@ QToolBar {
     background-color: #2a2a2d;
 }
 
-QDialog, QDockWidget, QWidget {
+QDialog, QWidget, QDockWidget {
     background-color: #202124;
     color: #e8eaed;
 }
@@ -30,38 +27,25 @@ QLabel, QListWidget, QLineEdit, QTextEdit, QSpinBox, QTableWidget, QPushButton {
     background-color: #292a2d;
     color: #e8eaed;
     border: 1px solid #3c4043;
-    padding: 4px;
-}
-
-QLineEdit:focus, QTextEdit:focus, QSpinBox:focus {
-    border: 1px solid {accent_color};
+    padding: 2px;
 }
 
 QPushButton {
+    background-color: $COLOR_ACCENT;
     border-radius: 4px;
-    padding: 4px 8px;
-    background-color: {accent_color};
-    color: white;
 }
-
 QPushButton:hover {
-    background-color: #5f6368;
+    background-color: $COLOR_ACCENT;
 }
 
 QHeaderView::section {
     background-color: #3c4043;
     color: #e8eaed;
-    padding: 6px;
-    font-weight: bold;
+    padding: 4px;
 }
 
 QTableWidget {
     gridline-color: #444;
-    selection-background-color: #5f6368;
+    selection-background-color: $COLOR_ACCENT;
     selection-color: white;
-    alternate-background-color: #35363a;
-}
-
-QTableWidget::item {
-    padding: 6px;
 }

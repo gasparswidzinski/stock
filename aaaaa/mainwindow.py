@@ -1081,13 +1081,13 @@ class MainWindow(QMainWindow):
         tam_fuente_str = settings.value("tam_fuente", "11pt")
         tam_fuente = int(tam_fuente_str.replace("pt", "").strip())
 
-        # Cargar tema correspondiente
         if tema == "Claro":
             cargar_tema(self, "tema_claro.qss", color, f"{tam_fuente}pt")
         elif tema == "Oscuro":
             cargar_tema(self, "tema_oscuro.qss", color, f"{tam_fuente}pt")
         else:
             cargar_tema(self, "tema_intermedio.qss", color, f"{tam_fuente}pt")
+
 
 
 
