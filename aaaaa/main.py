@@ -1,6 +1,7 @@
 import sys
 from PySide6.QtWidgets import QApplication
 from mainwindow import MainWindow
+from utils import cargar_tema
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
